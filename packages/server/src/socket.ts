@@ -119,6 +119,26 @@ export function registerSocketHandlers(io: Server, registry: GameRegistry, confi
       return { ok: true, data: undefined };
     });
 
+    on(C2S.REMATCH, null, async () => {
+      const cur = current();
+      if (!cur) return { ok: false, reason: "NOT_IN_A_GAME" };
+      const old = cur.room;
+      if (old.state.phase !== "GAME_OVER") return { ok: false, reason: "WRONG_PHASE" };
+      const name = old.state.players[cur.playerId]?.name ?? "Sorcier";
+      let next = old.rematchId ? registry.get(old.rematchId) : undefined;
+      const created = !next;
+      if (!next) {
+        next = registry.createWithConfig(old.state.config, "rematch") ?? undefined;
+        if (!next) return { ok: false, reason: "SERVER_FULL" };
+        old.rematchId = next.id;
+      }
+      const joined = await next.join(name);
+      if (!joined.ok) return joined;
+      if (created) old.offerRematch({ gameId: next.id, by: name }, cur.playerId);
+      await old.leave(cur.playerId);
+      return enter(next, joined.data);
+    });
+
     on(C2S.LEAVE, null, async () => {
       const cur = current();
       if (!cur) return { ok: false, reason: "NOT_IN_A_GAME" };

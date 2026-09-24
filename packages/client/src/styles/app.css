@@ -647,7 +647,6 @@ select {
   gap: 10px;
   overflow-x: auto;
   padding: 6px 4px 12px;
-  scroll-snap-type: x proximity;
 }
 .hand-empty {
   color: var(--muted);
@@ -681,7 +680,6 @@ select {
     linear-gradient(340deg, color-mix(in srgb, var(--c2) 25%, transparent), transparent 50%),
     #241d36;
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
-  scroll-snap-align: start;
   transition:
     transform 0.15s,
     box-shadow 0.15s,
@@ -1163,5 +1161,187 @@ button.rune:hover:not(:disabled) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ----- Phase 7 : rejeu de la résolution, raccourcis ------------------------- */
+
+.replay {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 180px;
+}
+.replay-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.replay-progress {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.replay-progress span {
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.replay-progress span.is-done {
+  background: var(--gold);
+}
+.replay-skip {
+  min-height: 36px;
+  padding: 0.3rem 0.9rem;
+}
+.replay-step {
+  animation: slide-in 0.3s both;
+}
+.replay-title {
+  font-size: 1.15rem;
+  margin: 0 0 8px;
+}
+.replay-cast {
+  color: var(--gold);
+}
+.replay-reveal {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.replay-reveal li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  animation: pop 0.3s both;
+}
+.replay-rune {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.replay-card {
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: card-in 0.35s both;
+}
+.replay-card small {
+  color: var(--muted);
+}
+.replay-dice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 2.2rem;
+}
+.die {
+  display: inline-block;
+  animation: roll 0.45s both;
+  color: #fff;
+  text-shadow: 0 0 10px rgb(244 185 66 / 0.6);
+}
+.dice-total {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--gold);
+}
+.dice-total em {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: normal;
+}
+.replay-lines {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.9rem;
+}
+.replay-lines li {
+  animation: slide-in 0.3s both;
+}
+.replay-lines .depth-1,
+.replay-lines .depth-2,
+.replay-lines .depth-3 {
+  padding-left: 16px;
+  color: #d8cff0;
+}
+.replay-lines .ev-damage,
+.replay-lines .ev-hp_lost {
+  color: #ffb3b5;
+  font-weight: 600;
+}
+.replay-lines .ev-heal {
+  color: #b5f2d2;
+}
+.replay-lines .ev-player_died {
+  color: var(--danger);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.rune-key {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  font: 700 0.7rem ui-monospace, monospace;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 4px;
+  background: var(--bg-2);
+}
+.shortcuts {
+  grid-area: hand;
+  align-self: end;
+  margin: 0 0 -14px;
+  text-align: right;
+  font-size: 0.72rem;
+}
+.shortcuts kbd,
+kbd {
+  font: 600 0.72rem ui-monospace, monospace;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 4px;
+  background: var(--bg-2);
+}
+
+@keyframes roll {
+  0% {
+    transform: rotate(-200deg) scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: rotate(15deg) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(0) scale(1);
+  }
+}
+@keyframes card-in {
+  from {
+    transform: translateY(20px) rotate(-6deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@media (hover: none), (max-width: 960px) {
+  .shortcuts,
+  .rune-key {
+    display: none;
   }
 }

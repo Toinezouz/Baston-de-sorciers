@@ -21,6 +21,10 @@ export function RulesDialog({ onClose }: { onClose(): void }) {
           1–4, 5–9 ou 10+. Mélanger les écoles, c'est plus rapide ; les assortir, c'est plus fort.
         </li>
         <li>
+          <strong>Concentration.</strong> Un sort d'<em>une seule</em> rune lance 2 dés de plus, un sort de deux runes 1 dé
+          de plus. Frapper vite et fort pour achever un adversaire avant qu'il n'agisse, c'est tout l'art de la baston.
+        </li>
+        <li>
           <strong>Dernier debout.</strong> Le dernier sorcier en vie gagne une 👑 Couronne et une relique. Les morts
           reviennent à la manche suivante avec une Rancune d'outre-tombe. Deux Couronnes remportent la baston.
         </li>

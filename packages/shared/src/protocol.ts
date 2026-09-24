@@ -21,12 +21,15 @@ export const C2S = {
   ACTION: "game:action",
   LEAVE: "game:leave",
   SYNC: "game:sync",
+  /** Après la fin de partie : crée (ou rejoint) la partie de revanche. */
+  REMATCH: "game:rematch",
 } as const;
 
 /** Événements émis par le serveur. */
 export const S2C = {
   STATE: "game:state",
   KICKED: "game:kicked",
+  REMATCH_OFFER: "game:rematch-offer",
 } as const;
 
 export type GameMode = "standard" | "quick";
@@ -89,6 +92,12 @@ export interface StateMessage {
   deadlines: Record<string, number>;
   /** Horloge serveur à l'envoi, pour corriger le décalage d'horloge du client. */
   serverTime: number;
+}
+
+/** Un joueur a lancé une revanche : les autres peuvent la rejoindre. */
+export interface RematchOfferMessage {
+  gameId: string;
+  by: string;
 }
 
 export interface KickedMessage {

@@ -404,6 +404,11 @@ export interface GameConfig {
   suddenDeathTurn: number;
   /** Au-delà, la manche est déclarée nulle. */
   maxTurnsPerRound: number;
+  /**
+   * Concentration : dés de Puissance supplémentaires selon la taille du sort
+   * ([1 rune, 2 runes, 3 runes]). Compense la faiblesse des sorts courts. [RULE D25]
+   */
+  focusDice: [number, number, number];
 }
 
 export interface GameState {

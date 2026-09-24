@@ -138,6 +138,7 @@ Elles s'ajoutent à D1–D11 de `01-analyse.md`. Chaque décision est repérée 
 | D22 | À l'expiration du temps de planification, une rune instable tirée au sort est placée dans un emplacement aléatoire. |
 | D24 | Si un abandon pendant la planification ne laisse qu'un seul sorcier, la manche se termine aussitôt et les runes posées reviennent en main. Ce cas a été découvert par les tests d'intégration. |
 | D23 | Si les PV max baissent (relique volée ou perdue, statut expiré), les PV actuels sont ramenés au nouveau maximum. Ce cas a été découvert par le fuzzing. |
+| D25 | **Concentration** : un sort d'une seule rune lance 2 dés de Puissance en plus, un sort de deux runes 1 dé en plus (`GameConfig.focusDice = [2, 1, 0]`). Ne s'applique qu'aux jets faits pendant un sort. Justification chiffrée : `docs/06-equilibrage.md`. |
 
 ## 8. Tests
 

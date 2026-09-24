@@ -21,7 +21,7 @@ import {
   type PlayerAction,
   type PlayerId,
 } from "@baston/engine";
-import { FULL_SYNC_EVENTS, S2C, type Ack, type KickedMessage, type StateMessage } from "@baston/shared";
+import { FULL_SYNC_EVENTS, S2C, type Ack, type KickedMessage, type RematchOfferMessage, type StateMessage } from "@baston/shared";
 import type { Socket } from "socket.io";
 import type { ServerConfig } from "./config";
 import { newPlayerId, newSessionToken } from "./ids";
@@ -59,6 +59,8 @@ export class Room {
   lastActivity: number;
   finishedAt: number | null = null;
   closed = false;
+  /** Partie de revanche créée depuis celle-ci. */
+  rematchId: string | null = null;
 
   private readonly sockets = new Map<PlayerId, Socket>();
   private readonly timers = new Map<string, { handle: NodeJS.Timeout; deadline: number }>();
@@ -274,6 +276,11 @@ export class Room {
   // -------------------------------------------------------------------------
   // Divers
   // -------------------------------------------------------------------------
+
+  /** Annonce la revanche aux joueurs encore présents. */
+  offerRematch(offer: RematchOfferMessage, except: PlayerId): void {
+    for (const [pid, socket] of this.sockets) if (pid !== except) socket.emit(S2C.REMATCH_OFFER, offer);
+  }
 
   summary(): RoomSummary {
     return {

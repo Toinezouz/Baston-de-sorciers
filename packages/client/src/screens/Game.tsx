@@ -1,5 +1,9 @@
 import { getCardDef, type CardView, type PlayerView, type RuneSlot } from "@baston/engine";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { isMuted, play as playSfx, setMuted } from "../audio";
+import { MuteButton } from "../components/MuteButton";
+import { ResolutionReplay } from "../components/ResolutionReplay";
+import { buildReplay, hasResolution, type ReplayStep } from "../game/replay";
 import { ChoiceDialog } from "../components/ChoiceDialog";
 import { EventLog } from "../components/EventLog";
 import { Hand } from "../components/Hand";
@@ -8,17 +12,18 @@ import { RuneCard } from "../components/RuneCard";
 import { RulesDialog } from "../components/RulesDialog";
 import { SpellBuilder } from "../components/SpellBuilder";
 import { Timer } from "../components/Timer";
-import { lastRevealedSpells, me as meOf, nameResolver, opponents } from "../game/helpers";
+import { lastRevealedSpells, me as meOf, nameResolver, opponents, sortHand } from "../game/helpers";
 import { useClientState, useGameClient } from "../hooks/useGame";
 import { GameOver } from "./GameOver";
 
 /** Table de jeu. */
 export function Game({ view }: { view: PlayerView }) {
   const client = useGameClient();
-  const { game, log, lastEvents, clockOffset } = useClientState();
+  const { game, log, lastEvents, clockOffset, rematchOffer } = useClientState();
   const [unstablePick, setUnstablePick] = useState<string | null>(null);
   const [logOpen, setLogOpen] = useState(false);
   const [rules, setRules] = useState(false);
+  const [replay, setReplay] = useState<{ key: number; steps: ReplayStep[] } | null>(null);
 
   const pub = view.public;
   const priv = view.private!;
@@ -61,6 +66,50 @@ export function Game({ view }: { view: PlayerView }) {
     [client, unstablePick, priv.spell],
   );
 
+  // Rejeu animé de chaque résolution reçue (désactivé si l'utilisateur limite les animations).
+  const version = game?.version ?? 0;
+  useEffect(() => {
+    if (!hasResolution(lastEvents)) return;
+    if (typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const steps = buildReplay(lastEvents);
+    if (steps.length) setReplay({ key: version, steps });
+  }, [version, lastEvents]);
+  const endReplay = useCallback(() => setReplay(null), []);
+
+  // Signal sonore quand un nouveau tour de planification commence.
+  useEffect(() => {
+    if (self?.alive && lastEvents.some((e) => e.type === "TURN_STARTED")) {
+      const t = setTimeout(() => playSfx("turn"), replay ? 400 : 0);
+      if ("vibrate" in navigator) navigator.vibrate?.(40);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version]);
+
+  // Raccourcis clavier : 1–9 jouer une rune, Entrée lancer, Retour arrière modifier, J journal, M son, ? règles.
+  const sortedHand = useMemo(() => sortHand(priv.hand), [priv.hand]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (e.ctrlKey || e.metaKey || e.altKey || target?.closest("input, select, textarea, [role=dialog]")) return;
+      if (/^[1-9]$/.test(e.key) && editable && !locked) {
+        const card = sortedHand[Number(e.key) - 1];
+        if (card) play(card);
+      } else if (e.key === "Enter" && editable && !locked && Object.keys(priv.spell).length) {
+        void client.act({ type: "LOCK_SPELL" });
+      } else if (e.key === "Backspace" && planning && locked) {
+        void client.act({ type: "UNLOCK_SPELL" });
+      } else if (e.key.toLowerCase() === "j") setLogOpen((o) => !o);
+      else if (e.key.toLowerCase() === "m") setMuted(!isMuted());
+      else if (e.key === "?") setRules(true);
+      else if (e.key === "Escape") setUnstablePick(null);
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [client, editable, locked, planning, play, priv.spell, sortedHand]);
+
   let banner: string;
   if (pub.phase === "GAME_OVER") banner = "Partie terminée";
   else if (pub.phase === "AWAITING_CHOICE") banner = chooserId === self?.id ? "À toi de choisir !" : `${name(chooserId)} fait un choix…`;
@@ -85,11 +134,18 @@ export function Game({ view }: { view: PlayerView }) {
         </p>
         <div className="game-tools">
           {planningTimer && deadlines[planningTimer.id] !== undefined && (
-            <Timer deadline={deadlines[planningTimer.id]!} clockOffset={clockOffset} totalMs={planningTimer.durationMs} label="Préparation" />
+            <Timer
+              deadline={deadlines[planningTimer.id]!}
+              clockOffset={clockOffset}
+              totalMs={planningTimer.durationMs}
+              label="Préparation"
+              tickSound={!!self?.alive && !locked}
+            />
           )}
           {choiceTimer && deadlines[choiceTimer.id] !== undefined && (
             <Timer deadline={deadlines[choiceTimer.id]!} clockOffset={clockOffset} totalMs={choiceTimer.durationMs} label="Choix" />
           )}
+          <MuteButton />
           <button type="button" className="btn btn-ghost btn-icon" onClick={() => setRules(true)} aria-label="Règles">
             📜
           </button>
@@ -117,7 +173,9 @@ export function Game({ view }: { view: PlayerView }) {
       </section>
 
       <section className="table" aria-label="Zone de jeu">
-        {revealed && revealed.spells.length > 0 ? (
+        {replay ? (
+          <ResolutionReplay key={replay.key} steps={replay.steps} name={name} onDone={endReplay} />
+        ) : revealed && revealed.spells.length > 0 ? (
           <>
             <h2 className="table-title">
               Sorts du tour {revealed.turn}
@@ -155,12 +213,17 @@ export function Game({ view }: { view: PlayerView }) {
               onLock={() => void client.act({ type: "LOCK_SPELL" })}
               onUnlock={() => void client.act({ type: "UNLOCK_SPELL" })}
               waitingFor={waitingFor}
+              focusDice={pub.config.focusDice ?? [0, 0, 0]}
             />
           )}
         </section>
       )}
 
       <Hand cards={priv.hand} playable={editable && !locked} selectedId={unstablePick} onPlay={play} />
+      <p className="shortcuts hint" aria-hidden>
+        Clavier : <kbd>1</kbd>–<kbd>9</kbd> jouer une rune · <kbd>Entrée</kbd> lancer · <kbd>⌫</kbd> modifier · <kbd>J</kbd> journal · <kbd>M</kbd> son ·{" "}
+        <kbd>?</kbd> règles
+      </p>
       {unstablePick && <p className="hint hand-hint">Rune instable : choisis un emplacement dans ton sort.</p>}
 
       {logOpen && <div className="log-backdrop" onClick={() => setLogOpen(false)} aria-hidden />}
@@ -187,7 +250,9 @@ export function Game({ view }: { view: PlayerView }) {
           onChoose={(ids) => void client.act({ type: "CHOOSE", requestId: priv.pendingChoice!.requestId, optionIds: ids })}
         />
       )}
-      {pub.phase === "GAME_OVER" && <GameOver view={view} onLeave={() => void client.leave()} />}
+      {pub.phase === "GAME_OVER" && !replay && (
+        <GameOver view={view} onLeave={() => void client.leave()} onRematch={() => void client.rematch()} rematchBy={rematchOffer?.by ?? null} />
+      )}
       {rules && <RulesDialog onClose={() => setRules(false)} />}
     </div>
   );

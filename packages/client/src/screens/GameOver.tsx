@@ -1,4 +1,6 @@
 import type { PlayerView } from "@baston/engine";
+import { useEffect } from "react";
+import { play } from "../audio";
 import { Modal } from "../components/Modal";
 
 const REASON: Record<string, string> = {
@@ -10,10 +12,24 @@ const REASON: Record<string, string> = {
 };
 
 /** Écran de fin : vainqueur et classement. */
-export function GameOver({ view, onLeave }: { view: PlayerView; onLeave(): void }) {
+export function GameOver({
+  view,
+  onLeave,
+  onRematch,
+  rematchBy,
+}: {
+  view: PlayerView;
+  onLeave(): void;
+  onRematch(): void;
+  /** Nom du joueur ayant proposé une revanche, le cas échéant. */
+  rematchBy: string | null;
+}) {
   const pub = view.public;
   const winner = pub.players.find((p) => p.id === pub.winnerId);
   const iWon = winner && winner.id === view.private?.playerId;
+  useEffect(() => {
+    play(iWon ? "win" : "lose");
+  }, [iWon]);
   const ranking = [...pub.players].sort((a, b) => b.crowns - a.crowns || b.stats.damageDealt - a.stats.damageDealt);
   return (
     <Modal title={winner ? (iWon ? "🏆 Victoire !" : `${winner.name} remporte la baston !`) : "Pas de vainqueur"} className="gameover">
@@ -41,9 +57,14 @@ export function GameOver({ view, onLeave }: { view: PlayerView; onLeave(): void 
           ))}
         </tbody>
       </table>
-      <button type="button" className="btn btn-primary btn-big" onClick={onLeave}>
-        Retour à l'accueil
-      </button>
+      <div className="row">
+        <button type="button" className="btn btn-primary btn-big" onClick={onRematch}>
+          {rematchBy ? `⚔ Rejoindre la revanche de ${rematchBy}` : "⚔ Revanche !"}
+        </button>
+        <button type="button" className="btn btn-big" onClick={onLeave}>
+          Retour à l'accueil
+        </button>
+      </div>
     </Modal>
   );
 }

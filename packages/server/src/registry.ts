@@ -4,7 +4,7 @@
  * Choix assumé : aucune base de données. Une partie dure quelques dizaines de minutes ;
  * un redémarrage du serveur termine les parties en cours (voir README § Déploiement).
  */
-import { DEFAULT_CONFIG, QUICK_CONFIG, type PlayerId } from "@baston/engine";
+import { DEFAULT_CONFIG, QUICK_CONFIG, type GameConfig, type PlayerId } from "@baston/engine";
 import type { GameMode } from "@baston/shared";
 import type { ServerConfig } from "./config";
 import { newGameCode, newSeed } from "./ids";
@@ -29,15 +29,20 @@ export class GameRegistry {
 
   /** Crée une partie ; null si la capacité du serveur est atteinte. */
   create(mode: GameMode = "standard", maxPlayers?: number): Room | null {
+    const base = mode === "quick" ? QUICK_CONFIG : DEFAULT_CONFIG;
+    return this.createWithConfig({ ...base, ...(maxPlayers ? { maxPlayers } : {}), ...this.config.gameOverrides }, mode);
+  }
+
+  /** Crée une partie avec une configuration complète (revanche : mêmes réglages). */
+  createWithConfig(gameConfig: GameConfig, mode: string = "custom"): Room | null {
     if (this.rooms.size >= this.config.maxGames) return null;
     let code = newGameCode();
     while (this.rooms.has(code)) code = newGameCode();
     const seed = newSeed();
-    const base = mode === "quick" ? QUICK_CONFIG : DEFAULT_CONFIG;
     const room = new Room(
       code,
       seed,
-      { ...base, ...(maxPlayers ? { maxPlayers } : {}), ...this.config.gameOverrides },
+      gameConfig,
       { config: this.config, logger: this.logger, now: this.now, onSessionEnd: (r, token) => this.onSessionEnd(r, token) },
     );
     this.rooms.set(code, room);

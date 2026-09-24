@@ -156,4 +156,22 @@ export function reason(ack: Ack<unknown>): string {
   return ack.ok ? "OK" : ack.reason;
 }
 
+/** Fait jouer des clients (rune simple, premier choix) jusqu'à la fin de la partie. */
+export async function playUntilOver(players: TestClient[], timeoutMs = 20_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (players[0]!.view.public.phase === "GAME_OVER") return;
+    for (const p of players) {
+      const v = p.view;
+      const me = v.public.players.find((x) => x.id === p.session!.playerId)!;
+      if (v.public.phase === "PLANNING" && me.alive && !me.spell?.locked && v.private!.hand.length) await p.castAny().catch(() => undefined);
+      const pc = v.private?.pendingChoice;
+      if (v.public.phase === "AWAITING_CHOICE" && pc)
+        await p.act({ type: "CHOOSE", requestId: pc.requestId, optionIds: pc.options.slice(0, pc.min).map((o) => o.id) });
+    }
+    await sleep(20);
+  }
+  throw new Error("partie non terminée à temps");
+}
+
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

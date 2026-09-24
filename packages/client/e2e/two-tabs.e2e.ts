@@ -72,7 +72,8 @@ const turnOf = async (page: Page) => Number((await page.locator(".game-meta").in
 
 describe("deux onglets", () => {
   it("créent, rejoignent, jouent, se reconnectent et terminent une partie", async () => {
-    const context = await browser.newContext({ viewport: { width: 1280, height: 860 } });
+    // Animations réduites : pas de rejeu animé, le test va droit au but.
+    const context = await browser.newContext({ viewport: { width: 1280, height: 860 }, reducedMotion: "reduce" });
     const a = await context.newPage();
     const b = await context.newPage();
 
@@ -138,11 +139,48 @@ describe("deux onglets", () => {
     const title = await a.locator(".gameover .modal-title").innerText();
     expect(title).toMatch(/Victoire|remporte/);
 
+    // Revanche : A la lance, B reçoit la proposition et la rejoint ; tous deux se retrouvent au lobby.
+    await a.getByRole("button", { name: /Revanche/ }).click();
+    const newCode = (await a.locator(".code").innerText()).trim();
+    expect(newCode).not.toBe(code);
+    await b2.getByRole("button", { name: /Rejoindre la revanche de Alex/ }).click();
+    await expect.poll(() => b2.locator(".code").innerText().catch(() => "")).toBe(newCode);
+    await expect.poll(() => a.locator(".lobby-players li").count()).toBe(2);
+
     // Retour à l'accueil.
-    await a.getByRole("button", { name: "Retour à l'accueil" }).click();
-    await a.getByRole("button", { name: "Créer la partie" }).waitFor();
+    await b2.getByRole("button", { name: "Quitter" }).click();
+    await b2.getByRole("button", { name: "Créer la partie" }).waitFor();
     await context.close();
   }, 180_000);
+
+  it("rejeu animé de la résolution, que l'on peut passer", async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 860 } });
+    const a = await context.newPage();
+    const b = await context.newPage();
+    await a.goto(base);
+    await a.getByLabel("Ton pseudo de sorcier").fill("Alex");
+    await a.getByRole("button", { name: "Créer la partie" }).click();
+    const code = (await a.locator(".code").innerText()).trim();
+    await b.goto(`${base}/partie/${code}`);
+    await b.getByLabel("Ton pseudo de sorcier").fill("Marie");
+    await b.getByRole("button", { name: "Rejoindre" }).click();
+    await b.getByRole("button", { name: /Je suis prêt/ }).click();
+    await a.getByRole("button", { name: /Lancer la baston/ }).click();
+    await expect.poll(() => a.locator(".hand .rune").count()).toBe(8);
+    // Raccourcis clavier : « 1 » pose la première rune, Entrée lance le sort.
+    await a.keyboard.press("1");
+    await a.locator(".spell .rune").first().waitFor();
+    await a.keyboard.press("Enter");
+    await playTurn(b);
+    await b.locator(".replay").waitFor();
+    await expect.poll(() => b.locator(".replay-title").first().innerText()).toMatch(/Révélation|lance/);
+    await shot(b, "7-replay");
+    await b.getByRole("button", { name: /Passer/ }).click();
+    await expect.poll(() => b.locator(".table-spell").count()).toBe(2);
+    // Sans intervention, le rejeu se termine seul.
+    await a.locator(".table-spell").first().waitFor({ timeout: 20_000 });
+    await context.close();
+  }, 60_000);
 
   it("affichage mobile : la table tient dans un écran de téléphone", async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });

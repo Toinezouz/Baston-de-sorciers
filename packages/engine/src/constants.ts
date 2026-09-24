@@ -11,6 +11,8 @@ export const DEFAULT_CONFIG: GameConfig = {
   maxRounds: 15,
   suddenDeathTurn: 20,
   maxTurnsPerRound: 40,
+  // Concentration adoptée après simulation (docs/06-equilibrage.md). [RULE D25]
+  focusDice: [2, 1, 0],
 };
 
 /** Variante « partie rapide ». */

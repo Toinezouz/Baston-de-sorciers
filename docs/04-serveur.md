@@ -51,6 +51,7 @@ Un message sans fonction d'ack est ignoré.
 | `game:action` | `{ clientSeq, action: PlayerAction }` | `{ version }` |
 | `game:sync` | — | — (le serveur renvoie un état complet) |
 | `game:leave` | — | — |
+| `game:rematch` | — (partie terminée uniquement) | `SessionInfo` de la nouvelle partie |
 
 `SessionInfo = { gameId, playerId, token, lastClientSeq }`. Le client conserve le `token` dans `localStorage`.
 
@@ -58,6 +59,12 @@ Un message sans fonction d'ack est ignoré.
 |---|---|
 | `game:state` | `StateMessage` : `{ gameId, version, full, view: { public, private }, events, deadlines, serverTime }` |
 | `game:kicked` | `{ reason: "SESSION_REPLACED" \| "GAME_CLOSED" }` |
+| `game:rematch-offer` | `{ gameId, by }` : un joueur a lancé une revanche |
+
+### Revanche
+Après `GAME_OVER`, le premier `game:rematch` crée une partie **avec la même configuration**. Son auteur en
+devient l'hôte, et les autres joueurs reçoivent `game:rematch-offer`. Chaque `game:rematch` suivant rejoint cette
+même partie. Le joueur quitte l'ancienne partie, qui est supprimée quand elle est vide.
 
 - `view` et `events` sont **filtrés pour le destinataire** : aucune carte adverse cachée, ni l'ordre de la pioche, ni la graine, ni l'état du hasard.
 - `full: true` (connexion, reprise, `game:sync`) : le client remplace son journal par les 150 derniers événements.

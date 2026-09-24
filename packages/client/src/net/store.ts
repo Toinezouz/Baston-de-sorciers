@@ -26,6 +26,8 @@ export interface ClientState {
   clockOffset: number;
   toasts: Toast[];
   kicked: "SESSION_REPLACED" | "GAME_CLOSED" | null;
+  /** Revanche proposée par un autre joueur de la partie terminée. */
+  rematchOffer: { gameId: string; by: string } | null;
 }
 
 export const MAX_LOG = 400;
@@ -39,6 +41,7 @@ export const initialState: ClientState = {
   clockOffset: 0,
   toasts: [],
   kicked: null,
+  rematchOffer: null,
 };
 
 /**

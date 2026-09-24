@@ -31,7 +31,7 @@ import type { EffectNode, EffectOp, EntityId, PlayerId, StatusInstance } from ".
 import { NeedChoice, type OpContext } from "./context";
 import { applyDamage, applyHeal, applyLoseHp, applyStatus, consumeStatuses, removeStatuses } from "./pipeline";
 import { resolveTargets } from "./targeting";
-import { evalAmount, evalCondition, runesMatchingCard, runesOfSchool } from "./values";
+import { evalAmount, evalCondition, runesMatchingCard, runesOfSchool, spellRuneDefs } from "./values";
 
 type Operator<K extends EffectOp> = (op: OpContext, node: Extract<EffectNode, { op: K }>) => void;
 type OperatorTable = { [K in EffectOp]: Operator<K> };
@@ -259,6 +259,11 @@ const operators: OperatorTable = {
     else if (node.school === undefined || node.school === "SELF") dice = runesMatchingCard(state, owner, ctx.cardDefId);
     else dice = runesOfSchool(state, owner, node.school);
     dice = Math.max(1, dice);
+    // Concentration : bonus de dés pour les sorts courts (uniquement pendant un sort). [RULE D25]
+    if (node.dice === undefined && ctx.spellOwnerId) {
+      const size = spellRuneDefs(state, ctx.spellOwnerId).length;
+      dice += state.config.focusDice[size - 1] ?? 0;
+    }
     if (isAliveEntity(state, ctx.controllerId)) dice += sumModifier(state, ctx.controllerId, "DICE");
     dice = Math.min(GUARDS.MAX_DICE, Math.max(1, dice));
     const rolls = Array.from({ length: dice }, () => rollD6(state.rng));

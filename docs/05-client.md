@@ -64,11 +64,31 @@ Accessibilité :
 - libellés ARIA sur les cartes et les jauges de PV ;
 - modales avec focus initial, fermeture avec Échap.
 
-## 5. Tests
+## 5. Finitions (phase 7)
+
+- **Rejeu animé de la résolution** (`components/ResolutionReplay.tsx`, `game/replay.ts`). Les événements d'un
+  tour sont découpés en étapes : révélation, sort lancé, puis chaque rune avec sa carte, ses dés et ses effets
+  ligne par ligne, puis la fin du tour. Le rejeu occupe la zone centrale, le bouton « Passer ⏭ » l'interrompt, et il est
+  désactivé si `prefers-reduced-motion` est actif. **L'état final est affiché dès réception** : le rejeu ne fait que
+  raconter.
+- **Sons synthétisés** (`audio.ts`, Web Audio, aucun fichier). Ils accompagnent la pose de rune, le lancement,
+  la révélation, les dés, les dégâts, les soins, les effets, la mort, le début de tour, le tic des 5 dernières
+  secondes, la victoire et la défaite. Bouton 🔊/🔇 ou touche **M**, préférence mémorisée.
+- **Raccourcis clavier** : **1–9** jouer la n-ième rune (numéro affiché sur la carte), **Entrée** lancer le sort,
+  **⌫** le modifier, **J** journal, **M** son, **?** règles, **Échap** annuler la sélection d'une rune instable.
+- **Revanche** en un clic depuis l'écran de fin. Les autres joueurs voient « Rejoindre la revanche de X ».
+- **Concentration** affichée dans l'aperçu du sort (« 🎯 +2 dés ») et expliquée dans les règles.
+- Vibration légère au début de chaque tour, sur les appareils qui la gèrent.
+
+## 6. Tests
 
 - `packages/client/test/store.test.ts` : logique pure (versions, synchro complète, horloge, sélecteurs).
-- `packages/client/e2e/two-tabs.e2e.ts` (`npm run test:e2e`) : **deux onglets d'un vrai Chromium**. Ils créent,
-  rejoignent par lien d'invitation, jouent, rafraîchissent, ferment et rouvrent un onglet (reprise), puis vont jusqu'à la fin de
-  partie. Le test vérifie aussi qu'il n'y a pas de défilement horizontal en affichage mobile (390 × 844).
+- `packages/client/e2e/two-tabs.e2e.ts` (`npm run test:e2e`) : **deux onglets d'un vrai Chromium**. Ils :
+  - créent une partie et la rejoignent par le lien d'invitation ;
+  - jouent, rafraîchissent un onglet, ferment et rouvrent un onglet (reprise) ;
+  - vont jusqu'à la fin de partie, puis **lancent une revanche** ensemble.
+
+  Deux autres tests vérifient le rejeu animé, le bouton « Passer » et les raccourcis clavier, ainsi que l'affichage mobile
+  (390 × 844, sans défilement horizontal, journal en tiroir).
   Chromium est cherché dans `CHROMIUM_PATH` ou `/opt/pw-browsers/chromium`. `E2E_SCREENSHOTS=dossier`
   enregistre des captures d'écran.

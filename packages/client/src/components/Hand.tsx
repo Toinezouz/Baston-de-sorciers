@@ -14,9 +14,10 @@ export function Hand({ cards, playable, selectedId, onPlay }: Props) {
   return (
     <section className="hand" aria-label={`Ma main (${cards.length} runes)`}>
       {cards.length === 0 && <p className="hand-empty">Main vide.</p>}
-      {sortHand(cards).map((c) => (
+      {sortHand(cards).map((c, i) => (
         <RuneCard
           key={c.id}
+          {...(playable && i < 9 ? { shortcut: String(i + 1) } : {})}
           defId={c.defId}
           selected={selectedId === c.id}
           disabled={!playable}

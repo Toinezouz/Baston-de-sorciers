@@ -9,10 +9,12 @@ interface Props {
   onClick?: () => void;
   /** Libellé accessible de l'action au clic. */
   actionLabel?: string;
+  /** Raccourci clavier affiché sur la carte. */
+  shortcut?: string;
 }
 
 /** Carte de rune : couleur d'école, emplacement, initiative, nom et texte de règles. */
-export function RuneCard({ defId, size = "md", selected, disabled, onClick, actionLabel }: Props) {
+export function RuneCard({ defId, size = "md", selected, disabled, onClick, actionLabel, shortcut }: Props) {
   const def = getCardDef(defId);
   const schools = def.schools;
   const style = {
@@ -34,6 +36,11 @@ export function RuneCard({ defId, size = "md", selected, disabled, onClick, acti
         {schools.length ? schools.map((s) => SCHOOL_ICON[s]).join("") : "❓"}
       </span>
       {size !== "xs" && <span className="rune-text">{def.text}</span>}
+      {shortcut && (
+        <kbd className="rune-key" aria-hidden>
+          {shortcut}
+        </kbd>
+      )}
     </>
   );
   const cls = `rune rune-${size}${selected ? " is-selected" : ""}${disabled ? " is-disabled" : ""}${def.unstable ? " is-unstable" : ""}`;

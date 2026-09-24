@@ -9,10 +9,12 @@ import {
   type Ack,
   type CreateGameRequest,
   type KickedMessage,
+  type RematchOfferMessage,
   type SessionInfo,
   type StateMessage,
 } from "@baston/shared";
 import { io, type Socket } from "socket.io-client";
+import { play } from "../audio";
 import { rejectMessage } from "./messages";
 import { applyStateMessage, initialState, type ClientState, type Toast } from "./store";
 
@@ -106,6 +108,10 @@ export class GameClient {
       this.state = applyStateMessage(this.state, msg, Date.now());
       this.emit();
     });
+    this.socket.on(S2C.REMATCH_OFFER, (msg: RematchOfferMessage) => {
+      this.set({ rematchOffer: msg });
+      this.toast(`${msg.by} propose une revanche !`, "info");
+    });
     this.socket.on(S2C.KICKED, (msg: KickedMessage) => {
       this.bound = false;
       if (msg.reason === "GAME_CLOSED") clearStored(this.state.session?.token);
@@ -174,7 +180,7 @@ export class GameClient {
     this.bound = true;
     this.seq = Math.max(this.seq, session.lastClientSeq);
     saveStored({ gameId: session.gameId, token: session.token });
-    this.set({ session, kicked: null });
+    this.set({ session, kicked: null, rematchOffer: null });
   }
 
   async create(req: CreateGameRequest): Promise<boolean> {
@@ -196,6 +202,19 @@ export class GameClient {
     if (!this.bound) return this.fail("OFFLINE");
     const ack = await this.request<{ version: number }>(C2S.ACTION, { clientSeq: ++this.seq, action });
     if (!ack.ok) return this.fail(ack.reason, ack.message);
+    if (action.type === "PLACE_RUNE" || action.type === "REMOVE_RUNE") play("place");
+    else if (action.type === "LOCK_SPELL") play("cast");
+    return true;
+  }
+
+  /** Lance la revanche (ou rejoint celle proposée) avec les mêmes réglages. */
+  async rematch(): Promise<boolean> {
+    if (!this.bound) return this.fail("OFFLINE");
+    const ack = await this.request<SessionInfo>(C2S.REMATCH);
+    if (!ack.ok) return this.fail(ack.reason, ack.message);
+    // L'état de la nouvelle partie arrive AVANT l'accusé de réception : ne surtout pas l'effacer.
+    // L'application n'affiche que l'état correspondant à la session courante.
+    this.adopt(ack.data);
     return true;
   }
 
@@ -211,6 +230,7 @@ export class GameClient {
   }
 
   private fail(reason: string, message?: string): false {
+    play("error");
     this.toast(reason === "INVALID_PAYLOAD" && message ? message : rejectMessage(reason, message));
     return false;
   }

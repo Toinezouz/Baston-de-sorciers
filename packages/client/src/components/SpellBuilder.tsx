@@ -12,12 +12,15 @@ interface Props {
   onLock(): void;
   onUnlock(): void;
   waitingFor: number;
+  /** Dés bonus de Concentration par taille de sort. */
+  focusDice: readonly number[];
 }
 
 /** Les trois emplacements du sort en préparation, l'aperçu de puissance et le bouton de lancement. */
-export function SpellBuilder({ spell, editable, locked, pendingSlotPick, onSlotClick, onLock, onUnlock, waitingFor }: Props) {
+export function SpellBuilder({ spell, editable, locked, pendingSlotPick, onSlotClick, onLock, onUnlock, waitingFor, focusDice }: Props) {
   const defIds = RUNE_SLOTS.map((s) => spell[s]?.defId).filter((d): d is string => !!d);
-  const preview = powerPreview(defIds);
+  const preview = powerPreview(defIds, focusDice);
+  const focus = focusDice[defIds.length - 1] ?? 0;
   const frappe = spell.FRAPPE ? getCardDef(spell.FRAPPE.defId).initiative ?? 0 : 0;
   return (
     <section className={`spell${locked ? " is-locked" : ""}`} aria-label="Mon sort">
@@ -57,6 +60,7 @@ export function SpellBuilder({ spell, editable, locked, pendingSlotPick, onSlotC
             <span title="Moins de runes = résolu plus tôt">
               {defIds.length} rune{defIds.length > 1 ? "s" : ""} · ⚡{frappe}
             </span>
+            {focus > 0 && <span title="Concentration : dés bonus des sorts courts">🎯 +{focus} dé{focus > 1 ? "s" : ""}</span>}
             {preview.map((p) => (
               <span key={p.school} title={`Puissance de ${SCHOOL_LABEL[p.school]}`}>
                 {SCHOOL_ICON[p.school]} {p.dice} dé{p.dice > 1 ? "s" : ""}

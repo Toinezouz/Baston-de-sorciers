@@ -78,6 +78,8 @@ describe("sélecteurs d'affichage", () => {
       { school: "BRAISE", dice: 2 },
       { school: "OMBRE", dice: 1 },
     ]);
+    // Concentration : +2 dés pour un sort d'une rune.
+    expect(powerPreview(["rune.ether.rayon-astral"], [2, 1, 0])).toEqual([{ school: "ETHER", dice: 3 }]);
     const sorted = sortHand([{ defId: "rune.instable" }, { defId: "rune.ether.rayon-astral" }, { defId: "rune.seve.pousse-vivace" }]);
     expect(sorted.map((c) => c.defId)).toEqual(["rune.seve.pousse-vivace", "rune.ether.rayon-astral", "rune.instable"]);
   });

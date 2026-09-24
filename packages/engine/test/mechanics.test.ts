@@ -100,6 +100,15 @@ describe("résolution, initiative, dés", () => {
     expect((roll.data.rolls as number[]).length).toBe(3);
   });
 
+  it("Concentration : un sort d'une seule rune lance 2 dés de plus", () => {
+    let s = createTestGame(2);
+    s = castSpell(s, "p1", { FRAPPE: "rune.ether.rayon-astral" });
+    s = castSpell(s, "p2", { AMORCE: "rune.seve.pousse-vivace", TORSION: "rune.seve.seve-montante", FRAPPE: "rune.seve.fouet-de-liane" });
+    const rolls = (pid: string) => (s.log.find((e) => e.type === "DICE_ROLLED" && e.sourceId === pid)!.data.rolls as number[]).length;
+    expect(rolls("p1")).toBe(3); // 1 rune d'Éther + 2 de Concentration
+    expect(rolls("p2")).toBe(3); // 3 runes de Sève, pas de bonus
+  });
+
   it("une rune instable est remplacée par la première rune compatible de la pioche", () => {
     let s = createTestGame(2);
     setHand(s, "p1", ["rune.instable"]);

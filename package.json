@@ -18,7 +18,8 @@
     "test:e2e": "npm run build && vitest run -c vitest.e2e.config.ts",
     "typecheck": "tsc -p packages/engine/tsconfig.json --noEmit && tsc -p packages/shared/tsconfig.json --noEmit && tsc -p packages/server/tsconfig.json --noEmit && tsc -p packages/client/tsconfig.json --noEmit",
     "sim": "tsx packages/engine/scripts/simulate.ts",
-    "cards:doc": "tsx packages/engine/scripts/cards-doc.ts"
+    "cards:doc": "tsx packages/engine/scripts/cards-doc.ts",
+    "balance": "tsx packages/engine/scripts/balance.ts"
   },
   "devDependencies": {
     "@types/node": "^22.7.0",

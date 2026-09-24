@@ -10,14 +10,28 @@ Les sorts sont révélés, puis résolus du plus court au plus long. Le dernier 
 
 ## État d'avancement
 
-| Phase | Contenu | État |
+| Phase | Contenu | Documentation |
 |---|---|---|
-| 1 | Analyse, règles, architecture — [`docs/01-analyse.md`](docs/01-analyse.md) | ✅ |
-| 2 | Moteur de règles pur (`packages/engine`) — [`docs/03-moteur.md`](docs/03-moteur.md) | ✅ |
-| 3 | Suite de tests du moteur : 177 tests, 98,5 % des lignes couvertes, fuzzing | ✅ |
-| 4 | Serveur : lobby, Socket.IO, validation, reconnexion — [`docs/04-serveur.md`](docs/04-serveur.md) | ✅ |
-| 5–6 | Client React connecté au serveur — [`docs/05-client.md`](docs/05-client.md) | ✅ |
-| 7 | Finitions (animations de résolution, sons, équilibrage) | — |
+| 1 | Analyse, règles, architecture | [`docs/01-analyse.md`](docs/01-analyse.md) |
+| 2–3 | Moteur de règles pur et déterministe, 70 cartes originales, tests et fuzzing | [`docs/03-moteur.md`](docs/03-moteur.md), [`docs/02-cartes.md`](docs/02-cartes.md) |
+| 4 | Serveur autoritaire temps réel : lobby, Socket.IO, reconnexion, sécurité | [`docs/04-serveur.md`](docs/04-serveur.md) |
+| 5–6 | Client React connecté, jouable sur ordinateur et mobile | [`docs/05-client.md`](docs/05-client.md) |
+| 7 | Rejeu animé, sons, raccourcis, revanche, équilibrage par simulation, déploiement | [`docs/06-equilibrage.md`](docs/06-equilibrage.md) |
+
+Environ 215 tests unitaires et d'intégration, plus 3 tests de bout en bout dans un vrai navigateur (deux onglets jouent l'un contre l'autre).
+
+## Règles en bref
+
+- 2 à 6 sorciers, 20 PV (12 en mode rapide). Chaque tour, tous préparent **en secret** un sort de 1 à 3 runes :
+  **Amorce → Torsion → Frappe**.
+- Les sorts sont révélés, puis résolus du **plus court au plus long**. À égalité, l'initiative ⚡ de la Frappe départage, puis le hasard.
+- **Puissance** : 1 dé par rune de la même école dans le sort (paliers 1–4 / 5–9 / 10+). **Concentration** : +2 dés pour un
+  sort d'une rune, +1 pour deux runes.
+- Cinq écoles : 🔥 Braise, 🌑 Ombre, 🌿 Sève, ✨ Éther, 🎭 Chimère. Il existe aussi des runes bi-écoles et des runes instables.
+- Statuts (Brûlure, Venin, Égide, Épines, Rage…), reliques, invocations.
+- Le dernier debout gagne une 👑 Couronne et une relique. Les morts reviennent avec une Rancune d'outre-tombe.
+  **2 Couronnes** remportent la partie (1 en mode rapide).
+- Toutes les décisions de règles ambiguës sont numérotées (D1–D25) dans `docs/01-analyse.md` et `docs/03-moteur.md`.
 
 ## Prérequis
 
@@ -44,9 +58,47 @@ npm test              # tests unitaires et d'intégration (moteur, serveur, clie
 npm run test:e2e      # build + tests de bout en bout dans Chromium (deux onglets)
 npm run test:coverage # couverture
 npm run typecheck     # vérification TypeScript stricte (tous les packages)
-npm run sim -- 200 4  # simule 200 parties à 4 bots (rythme, équilibrage)
+npm run sim -- 200 4  # simule 200 parties à 4 bots (rythme)
+npm run balance -- 600 # compare des stratégies de bots (équilibrage, voir docs/06)
 npm run cards:doc     # régénère docs/02-cartes.md depuis le catalogue
 ```
+
+## Ajouter une carte ou un effet
+
+- **Nouvelle carte** : ajoutez un objet de données dans `packages/engine/src/cards/` (runes, reliques, rancunes),
+  lancez `npm test` (le catalogue est validé automatiquement) puis `npm run cards:doc`.
+- **Nouvel effet** : ajoutez une variante à `EffectNode` (`types.ts`) et son opérateur dans `effects/operators.ts`.
+  Le compilateur signale tout oubli.
+- Pas à pas détaillé : [`docs/03-moteur.md`](docs/03-moteur.md) §4 et §5.
+
+## Déploiement
+
+Le jeu tient dans **un seul processus Node** : le serveur sert le client compilé, l'API et le WebSocket sur le même port.
+
+```bash
+npm ci
+npm run build
+npm prune --omit=dev      # facultatif : retire les outils de développement
+PORT=3001 CORS_ORIGIN=https://mon-domaine.fr npm start
+```
+
+Avec Docker :
+
+```bash
+docker build -t baston-de-sorciers .
+docker run -p 3001:3001 -e CORS_ORIGIN=https://mon-domaine.fr baston-de-sorciers
+```
+
+> Les étapes du `Dockerfile` (installation, build, élagage, démarrage) ont été vérifiées à l'identique hors
+> conteneur. L'image elle-même n'a pas pu être construite dans l'environnement de développement (pas de démon Docker).
+
+Points d'attention en production :
+- **Proxy inverse** (Nginx, Caddy, Traefik) : activer le passage des WebSockets vers `/socket.io/`.
+- **Une seule instance** : les parties vivent en mémoire. Pour plusieurs instances, il faudrait des sessions
+  « collantes » par code de partie. Un redémarrage termine les parties en cours.
+- Restreindre `CORS_ORIGIN` au domaine du jeu. Les autres variables sont listées dans [`docs/04-serveur.md`](docs/04-serveur.md) §5.
+- Surveiller `GET /health`.
+- Hébergeurs adaptés : toute plateforme qui exécute un conteneur ou Node ≥ 20 avec WebSockets (Fly.io, Render, Railway, un VPS…).
 
 ## Documentation
 
@@ -54,7 +106,8 @@ npm run cards:doc     # régénère docs/02-cartes.md depuis le catalogue
 - [`docs/02-cartes.md`](docs/02-cartes.md) : catalogue complet des cartes (généré)
 - [`docs/03-moteur.md`](docs/03-moteur.md) : API du moteur, résolution, **ajout d'une carte ou d'un effet**, garde-fous, décisions D12–D24, tests
 - [`docs/04-serveur.md`](docs/04-serveur.md) : serveur temps réel, **protocole**, reconnexion, sécurité, **variables d'environnement**
-- [`docs/05-client.md`](docs/05-client.md) : client web, gestion de session multi-onglets, interface, tests de bout en bout
+- [`docs/05-client.md`](docs/05-client.md) : client web, gestion de session multi-onglets, interface, finitions, tests de bout en bout
+- [`docs/06-equilibrage.md`](docs/06-equilibrage.md) : simulations, stratégies, cartes fortes ou faibles, combos, garde-fous
 
 ## Structure
 

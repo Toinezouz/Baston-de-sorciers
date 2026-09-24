@@ -1,9 +1,9 @@
 /**
  * Tests d'intégration du serveur (réseau réel, clients Socket.IO).
  */
-import { C2S } from "@baston/shared";
+import { C2S, S2C, type SessionInfo } from "@baston/shared";
 import { afterEach, describe, expect, it } from "vitest";
-import { client, reason, sleep, startServer, startedGame, type TestClient, type TestServer } from "./harness";
+import { client, playUntilOver, reason, sleep, startServer, startedGame, type TestClient, type TestServer } from "./harness";
 
 let srv: TestServer;
 const clients: TestClient[] = [];
@@ -288,24 +288,43 @@ describe("déconnexion et reconnexion", () => {
 
 describe("partie complète en réseau", () => {
   it("deux clients jouent une partie rapide jusqu'à la victoire", async () => {
-    srv = await startServer({ gameOverrides: { planningMs: 2000, choiceMs: 500 } });
+    // Bots bien plus rapides qu'un humain : limitation de débit relevée pour ce test.
+    srv = await startServer({ gameOverrides: { planningMs: 2000, choiceMs: 500 }, rateLimit: { burst: 1000, perSecond: 1000 } });
     const players = await track(startedGame(srv.url, 2, { mode: "quick" }));
-    const deadline = Date.now() + 20_000;
-    while (Date.now() < deadline) {
-      const phase = players[0]!.view.public.phase;
-      if (phase === "GAME_OVER") break;
-      for (const p of players) {
-        const v = p.view;
-        const me = v.public.players.find((x) => x.id === p.session!.playerId)!;
-        if (v.public.phase === "PLANNING" && me.alive && !me.spell?.locked && v.private!.hand.length) await p.castAny().catch(() => undefined);
-        const pc = v.private?.pendingChoice;
-        if (v.public.phase === "AWAITING_CHOICE" && pc)
-          await p.act({ type: "CHOOSE", requestId: pc.requestId, optionIds: pc.options.slice(0, pc.min).map((o) => o.id) });
-      }
-      await sleep(20);
-    }
+    await playUntilOver(players);
     const final = await players[1]!.waitFor((s) => s.view.public.phase === "GAME_OVER", 5000);
     expect(final.view.public.winnerId).toBeTruthy();
     expect(players[0]!.last.view.public.winnerId).toBe(final.view.public.winnerId);
+  }, 30_000);
+});
+
+describe("revanche", () => {
+  it("après la fin, un joueur lance la revanche et l'autre la rejoint via la proposition", async () => {
+    // Bots bien plus rapides qu'un humain : limitation de débit relevée pour ce test.
+    srv = await startServer({ gameOverrides: { planningMs: 2000, choiceMs: 500 }, rateLimit: { burst: 1000, perSecond: 1000 } });
+    const [a, b] = await track(startedGame(srv.url, 2, { mode: "quick", maxPlayers: 3 }));
+    const early = await a!.request(C2S.REMATCH);
+    expect(reason(early)).toBe("WRONG_PHASE");
+    await playUntilOver([a!, b!]);
+    await b!.waitFor((s) => s.view.public.phase === "GAME_OVER", 5000);
+    const oldCode = a!.session!.gameId;
+
+    const offers: { gameId: string; by: string }[] = [];
+    b!.socket.on(S2C.REMATCH_OFFER, (m) => offers.push(m));
+    const ra = await a!.request<SessionInfo>(C2S.REMATCH);
+    expect(reason(ra)).toBe("OK");
+    if (!ra.ok) return;
+    expect(ra.data.gameId).not.toBe(oldCode);
+    await sleep(50);
+    expect(offers).toEqual([{ gameId: ra.data.gameId, by: "Hôte" }]);
+
+    const rb = await b!.request<SessionInfo>(C2S.REMATCH);
+    expect(rb.ok && rb.data.gameId).toBe(ra.data.gameId);
+    // Même réglages (mode rapide, 3 joueurs max), nouveau lobby avec les deux joueurs, A hôte.
+    const lobby = await a!.waitFor((s) => s.gameId === ra.data.gameId && s.view.public.players.length === 2);
+    expect(lobby.view.public.config).toMatchObject({ crownsToWin: 1, maxPlayers: 3 });
+    expect(lobby.view.public.hostId).toBe(ra.data.playerId);
+    // L'ancienne partie, désormais vide, a été supprimée.
+    expect((await fetch(`${srv.url}/api/games/${oldCode}`)).status).toBe(404);
   }, 30_000);
 });

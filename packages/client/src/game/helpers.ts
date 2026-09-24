@@ -75,12 +75,16 @@ export function sortHand<T extends { defId: string }>(cards: T[]): T[] {
   );
 }
 
-/** Nombre de dés de Puissance par école pour un sort en préparation. */
-export function powerPreview(defIds: string[]): { school: School; dice: number }[] {
+/**
+ * Nombre de dés de Puissance par école pour un sort en préparation,
+ * Concentration comprise (bonus des sorts courts, `focusDice`).
+ */
+export function powerPreview(defIds: string[], focusDice: readonly number[] = [0, 0, 0]): { school: School; dice: number }[] {
+  const bonus = focusDice[defIds.length - 1] ?? 0;
   const out: { school: School; dice: number }[] = [];
   for (const school of SCHOOLS) {
     const n = defIds.filter((d) => getCardDef(d).schools.includes(school)).length;
-    if (n > 0) out.push({ school, dice: n });
+    if (n > 0) out.push({ school, dice: n + bonus });
   }
   return out;
 }
