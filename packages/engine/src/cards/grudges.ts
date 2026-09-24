@@ -54,4 +54,29 @@ export const GRUDGES: CardDefinition[] = [
     text: "Tu gagnes 2 Rage (2 tours).",
     effects: [status(T.SELF, "rage", { stacks: 2 })],
   },
+  // --- Extension « Échos du Grimoire » ------------------------------------
+  {
+    id: "grudge.spectre-vengeur", kind: "GRUDGE", schools: [], copies: 2,
+    name: "Spectre vengeur",
+    text: "Invoque un Spectre affamé (4 PV) : à chaque fin de tour, il blesse l'adversaire le plus affaibli et te rend 1 PV.",
+    effects: [{ op: "SUMMON", summon: "spectre-affame" }],
+  },
+  {
+    id: "grudge.hantise", kind: "GRUDGE", schools: [], copies: 2,
+    name: "Hantise",
+    text: "Le sorcier qui t'a éliminé reçoit 2 Marques et 1 Venin.",
+    effects: [status(T.MY_KILLER, "marque", { stacks: 2 }), status(T.MY_KILLER, "venin", { stacks: 1 })],
+  },
+  {
+    id: "grudge.elan-d-outre-tombe", kind: "GRUDGE", schools: [], copies: 2,
+    name: "Élan d'outre-tombe",
+    text: "Tu gagnes Hâte (+8 à l'initiative, 2 tours) et pioches 1 rune.",
+    effects: [status(T.SELF, "hate"), draw(T.SELF, 1)],
+  },
+  {
+    id: "grudge.brume-d-outre-tombe", kind: "GRUDGE", schools: [], copies: 1,
+    name: "Brume d'outre-tombe",
+    text: "Tu es Intangible pendant le premier tour de la manche.",
+    effects: [status(T.SELF, "intangible", { duration: 1 })],
+  },
 ];

@@ -55,6 +55,7 @@ export interface PublicPlayerView {
   connection: ConnectionStatus;
   ready: boolean;
   isHost: boolean;
+  isBot: boolean;
   spell: PublicSpellView | null;
   stats: { damageDealt: number; kills: number; roundsWon: number };
 }
@@ -134,6 +135,7 @@ export function publicView(state: GameState): PublicGameView {
         connection: p.connection,
         ready: p.ready,
         isHost: state.hostId === pid,
+        isBot: p.isBot,
         spell: spell
           ? {
               slots: RUNE_SLOTS.filter((s) => spell.runes[s]),

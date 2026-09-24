@@ -88,4 +88,77 @@ export const RELICS: CardDefinition[] = [
     text: "Quand un autre sorcier meurt, tu gagnes 2 Égide.",
     passives: [{ trigger: { on: "ON_ANY_DEATH", effects: [status(T.HOLDER, "egide", { stacks: 2 })] } }],
   },
+  // --- Extension « Échos du Grimoire » ------------------------------------
+  {
+    id: "relic.oeuf-de-salamandre", kind: "RELIC", schools: [], copies: 1, effects: [],
+    name: "Œuf de salamandre",
+    text: "Au début de chaque manche, une Salamandre (3 PV) éclot à tes côtés : elle inflige 1 Brûlure à chaque fin de tour.",
+    passives: [{ trigger: { on: "ON_ROUND_START", effects: [{ op: "SUMMON", summon: "salamandre" }] } }],
+  },
+  {
+    id: "relic.fiole-de-venin", kind: "RELIC", schools: [], copies: 2, effects: [],
+    name: "Fiole de venin",
+    text: "Tes dégâts d'Ombre sont augmentés de 1.",
+    passives: [{ modifier: { hook: "DAMAGE_OUT", kind: "ADD", value: 1, filter: { school: "OMBRE" } } }],
+  },
+  {
+    id: "relic.dague-du-filou", kind: "RELIC", schools: [], copies: 2, effects: [],
+    name: "Dague du filou",
+    text: "Tes dégâts de Chimère sont augmentés de 1.",
+    passives: [{ modifier: { hook: "DAMAGE_OUT", kind: "ADD", value: 1, filter: { school: "CHIMERE" } } }],
+  },
+  {
+    id: "relic.graine-eternelle", kind: "RELIC", schools: [], copies: 1, effects: [], eternal: true,
+    name: "Graine éternelle",
+    text: "Éternelle. Au début de chaque manche, un Golem de mousse (6 PV) se lève à tes côtés.",
+    passives: [{ trigger: { on: "ON_ROUND_START", effects: [{ op: "SUMMON", summon: "golem-de-mousse" }] } }],
+  },
+  {
+    id: "relic.lentille-astrale", kind: "RELIC", schools: [], copies: 2, effects: [],
+    name: "Lentille astrale",
+    text: "Quand ton jet de Puissance totalise 10 ou plus, tu pioches 1 rune.",
+    passives: [{ trigger: { on: "ON_DICE_ROLLED", filter: { minAmount: 10 }, effects: [draw(T.HOLDER, 1)] } }],
+  },
+  {
+    id: "relic.collier-de-crocs", kind: "RELIC", schools: [], copies: 1, effects: [],
+    name: "Collier de crocs",
+    text: "Quand tu élimines un sorcier, tu gagnes 2 Rage (2 tours).",
+    passives: [{ trigger: { on: "ON_KILL", effects: [status(T.HOLDER, "rage", { stacks: 2 })] } }],
+  },
+  {
+    id: "relic.masque-du-bouffon", kind: "RELIC", schools: [], copies: 1, effects: [],
+    name: "Masque du bouffon",
+    text: "Une fois par tour, quand un adversaire te blesse, une chance sur quatre de devenir Intangible jusqu'à la fin du tour.",
+    passives: [
+      {
+        trigger: {
+          on: "ON_DAMAGE_RECEIVED",
+          filter: { otherIsFoe: true },
+          maxPerTurn: 1,
+          effects: [iff({ c: "CHANCE", percent: 25 }, [status(T.HOLDER, "intangible", { duration: 1 })])],
+        },
+      },
+    ],
+  },
+  {
+    id: "relic.talisman-de-seve", kind: "RELIC", schools: [], copies: 2, effects: [],
+    name: "Talisman de sève",
+    text: "Chaque soin que tu reçois te rend 1 PV de plus.",
+    passives: [{ modifier: { hook: "HEAL_IN", kind: "ADD", value: 1 } }],
+  },
+  {
+    id: "relic.cloche-funebre", kind: "RELIC", schools: [], copies: 1, effects: [],
+    name: "Cloche funèbre",
+    text: "Quand un autre sorcier meurt, chacun de tes adversaires subit 1 dégât.",
+    passives: [{ trigger: { on: "ON_ANY_DEATH", effects: [dmg(T.ALL_FOES, 1, "OMBRE")] } }],
+  },
+  {
+    id: "relic.plume-de-phenix", kind: "RELIC", schools: [], copies: 1, effects: [], eternal: true,
+    name: "Plume de phénix",
+    text: "Éternelle. +2 PV maximum. Au début de chaque manche, tu gagnes 2 Égide.",
+    passives: [
+      { modifier: { hook: "MAX_HP", kind: "ADD", value: 2 } },
+      { trigger: { on: "ON_ROUND_START", effects: [status(T.HOLDER, "egide", { stacks: 2 })] } },
+    ],
+  },
 ];

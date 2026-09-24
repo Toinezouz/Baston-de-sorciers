@@ -82,7 +82,12 @@ export type AmountSource =
   | "SELF_STATUS_STACKS" // cumuls du statut `status` sur le contrôleur
   | "EVENT_AMOUNT" // montant de l'événement déclencheur
   | "DEAD_PLAYERS" // nb de sorciers morts dans la manche
-  | "MISSING_HP"; // PV manquants du contrôleur
+  | "MISSING_HP" // PV manquants du contrôleur
+  | "IT_STATUS_STACKS" // cumuls du statut `status` sur l'entité courante (FOR_EACH) ou la cible de l'événement
+  | "MY_SUMMON_COUNT" // nb d'invocations du contrôleur
+  | "HAND_SIZE" // nb de runes dans la main du contrôleur
+  | "MY_RELIC_COUNT" // nb de reliques du contrôleur
+  | "ALIVE_FOES"; // nb d'adversaires vivants
 
 export type Amount =
   | number
@@ -108,6 +113,8 @@ export type TargetSelector =
   | "WEAKEST_FOE" // adversaire vivant avec le moins de PV
   | "RANDOM_FOE" // adversaire vivant tiré au sort (RNG serveur)
   | "ALL_FOE_SUMMONS"
+  | "MY_SUMMONS" // invocations du contrôleur
+  | "ALL_SUMMONS"
   | "MY_KILLER" // sorcier ayant tué le contrôleur lors de la manche précédente
   | "EVENT_SOURCE"
   | "EVENT_TARGET"
@@ -129,6 +136,11 @@ export type Condition =
   | { c: "SPELL_SIZE_AT_LEAST"; value: number }
   | { c: "HAS_RELIC"; who: TargetSpec }
   | { c: "CHANCE"; percent: number }
+  | { c: "HP_AT_LEAST"; who: TargetSpec; value: number }
+  | { c: "CONTROLS_SUMMON" }
+  /** Le sort courant est le premier (ou le dernier) résolu ce tour. */
+  | { c: "CAST_FIRST" }
+  | { c: "CAST_LAST" }
   | { c: "AND"; of: Condition[] }
   | { c: "OR"; of: Condition[] }
   | { c: "NOT"; of: Condition };
@@ -145,6 +157,8 @@ export type EffectNode =
   | { op: "STEAL_CARD"; from: TargetSpec; count: Amount }
   | { op: "GAIN_RELIC"; target: TargetSpec; count: Amount }
   | { op: "STEAL_RELIC"; from: TargetSpec }
+  /** Déplace les statuts d'une polarité donnée d'une entité vers une autre (ex. refiler ses malus). */
+  | { op: "TRANSFER_STATUS"; from: TargetSpec; to: TargetSpec; polarity: "BUFF" | "DEBUFF" }
   | { op: "SUMMON"; summon: SummonDefId }
   | { op: "POWER_ROLL"; school?: School | "SELF"; dice?: number; tiers: [EffectNode[], EffectNode[], EffectNode[]] }
   | { op: "IF"; cond: Condition; then: EffectNode[]; else?: EffectNode[] }
@@ -285,6 +299,8 @@ export interface Player {
   statuses: StatusInstance[];
   connection: ConnectionStatus;
   ready: boolean;
+  /** Joueur contrôlé par le serveur. */
+  isBot: boolean;
   diedThisRound: boolean;
   /** Sorcier responsable de la dernière mort (pour les Rancunes). */
   killedBy: PlayerId | null;
@@ -537,7 +553,7 @@ export type PlayerAction =
   | { type: "LEAVE" };
 
 export type SystemAction =
-  | { type: "JOIN"; playerId: PlayerId; name: string }
+  | { type: "JOIN"; playerId: PlayerId; name: string; bot?: boolean }
   | { type: "TIMEOUT"; timerId: string }
   | { type: "CONNECTION"; playerId: PlayerId; status: "CONNECTED" | "DISCONNECTED" }
   | { type: "ABANDON"; playerId: PlayerId };

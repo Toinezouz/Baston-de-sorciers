@@ -24,6 +24,7 @@ import {
   isAliveEntity,
   isPlayer,
   nextId,
+  statusesOf,
   sumModifier,
   tick,
 } from "../state/helpers";
@@ -231,6 +232,17 @@ const operators: OperatorTable = {
       victim.relics = victim.relics.filter((id) => id !== relic);
       getPlayer(op.state, thief).relics.push(relic);
       emit(op.state, { type: "RELIC_STOLEN", sourceId: thief, targetId: pid, data: { card: relic, defId: op.state.cards[relic]?.defId } }, op.meta);
+    }
+  },
+
+  TRANSFER_STATUS(op, node) {
+    const [from] = resolveTargets(op, node.from, "from");
+    const [to] = resolveTargets(op, node.to, "to");
+    if (!from || !to || from === to) return;
+    const moving = statusesOf(op.state, from).filter((s) => getStatusDef(s.defId).polarity === node.polarity);
+    for (const st of moving) {
+      removeStatuses(op.state, from, (x) => x === st, "TRANSFERRED", op.meta);
+      applyStatus(op.state, actingSource(op), to, st.defId, st.stacks, st.remaining, op.meta);
     }
   },
 

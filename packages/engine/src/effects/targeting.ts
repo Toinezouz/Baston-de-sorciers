@@ -27,6 +27,13 @@ function foeSummons(state: GameState, controllerId: PlayerId): EntityId[] {
     .map((s) => s.id);
 }
 
+export function mySummons(state: GameState, controllerId: PlayerId): EntityId[] {
+  return Object.values(state.summons)
+    .filter((s) => s.controllerId === controllerId)
+    .sort((a, b) => a.enteredAt - b.enteredAt)
+    .map((s) => s.id);
+}
+
 function extremeFoe(state: GameState, controllerId: PlayerId, dir: 1 | -1): PlayerId[] {
   const foes = foesOf(state, controllerId);
   if (foes.length === 0) return [];
@@ -94,6 +101,12 @@ export function resolveTargets(op: OpContext, spec: TargetSpec, key = "target"):
     }
     case "ALL_FOE_SUMMONS":
       return foeSummons(state, controllerId);
+    case "MY_SUMMONS":
+      return mySummons(state, controllerId);
+    case "ALL_SUMMONS":
+      return Object.values(state.summons)
+        .sort((a, b) => a.enteredAt - b.enteredAt)
+        .map((s) => s.id);
     case "MY_KILLER": {
       const killer = isPlayer(state, controllerId) ? getPlayer(state, controllerId).killedBy : null;
       return killer && killer !== controllerId ? alive([killer]) : [];

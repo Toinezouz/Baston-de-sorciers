@@ -63,7 +63,9 @@ describe("critères d'acceptation (moteur)", () => {
     // 14–15. Il se reconnecte et retrouve son état privé.
     s = must(s, { system: { type: "CONNECTION", playerId: "B", status: "CONNECTED" } });
     const vB = viewFor(s, "B");
-    expect(vB.private!.hand).toHaveLength(8);
+    // La main restaurée correspond exactement à l'état serveur (au moins 8 runes ; plus avec certains effets).
+    expect(vB.private!.hand.map((c) => c.id)).toEqual(s.players.B!.hand);
+    expect(vB.private!.hand.length).toBeGreaterThanOrEqual(8);
     expect(vB.public.players.find((p) => p.id === "B")!.connection).toBe("CONNECTED");
     expect(handBefore.length).toBe(8);
     // 12. La partie se termine proprement (seconde Couronne).

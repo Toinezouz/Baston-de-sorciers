@@ -20,6 +20,7 @@ import type {
 import { GRUDGES } from "./grudges";
 import { RELICS } from "./relics";
 import { RUNES } from "./runes";
+import { RUNES_ECHOS } from "./runes-echos";
 import { STATUSES } from "./statuses";
 import { SUMMONS } from "./summons";
 
@@ -83,6 +84,7 @@ function validateCondition(c: Condition, where: string): string[] {
     case "NOT":
       return validateCondition(c.of, where);
     case "HP_AT_MOST":
+    case "HP_AT_LEAST":
     case "HAS_STATUS":
     case "IS_DEAD":
     case "HAS_RELIC": {
@@ -122,6 +124,9 @@ export function validateEffects(effects: EffectNode[], where: string): string[] 
       case "STEAL_CARD":
       case "STEAL_RELIC":
         errs.push(...validateTarget(e.from, where, true));
+        break;
+      case "TRANSFER_STATUS":
+        errs.push(...validateTarget(e.from, where, true), ...validateTarget(e.to, where, true));
         break;
       case "SUMMON":
         if (!summons.has(e.summon)) errs.push(`${where}: unknown summon ${e.summon}`);
@@ -234,5 +239,5 @@ export function validateCatalog(): string[] {
 // Les statuts/invocations sont enregistrés sans validation croisée puis validés ensemble.
 for (const s of STATUSES) statuses.set(s.id, s);
 for (const s of SUMMONS) summons.set(s.id, s);
-for (const c of [...RUNES, ...RELICS, ...GRUDGES]) registerCard(c);
+for (const c of [...RUNES, ...RUNES_ECHOS, ...RELICS, ...GRUDGES]) registerCard(c);
 assertValid(validateCatalog());

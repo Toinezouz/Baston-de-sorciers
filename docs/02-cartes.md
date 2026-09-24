@@ -4,7 +4,7 @@
 
 **Coût** : aucune carte n'a de coût en ressource. Le coût d'une rune est son **emplacement** (1 rune par emplacement et par sort) et la **carte de main** consommée. Plus un sort compte de runes, plus il est puissant (dés) mais plus il résout tard.
 
-## Runes (50 cartes, 102 exemplaires)
+## Runes (88 cartes, 164 exemplaires)
 
 | ID | Nom | Type | Coût | Description | Cible | Effets | Conditions | Interactions |
 |---|---|---|---|---|---|---|---|---|
@@ -58,8 +58,46 @@
 | `rune.duo.chaos-flamboyant` | Chaos flamboyant | FRAPPE · BRAISE+CHIMERE · init 16 ×1 | emplacement FRAPPE | Puissance (Braise ou Chimère, la meilleure). Un adversaire aléatoire : 1–4 : 3 dégâts. 5–9 : 4 dégâts. 10+ : 6 dégâts et 2 Brûlure. | adversaire aléatoire | POWER_ROLL, DAMAGE, FOR_EACH, APPLY_STATUS | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé ; compte pour deux écoles |
 | `rune.duo.frappe-crepusculaire` | Frappe crépusculaire | FRAPPE · OMBRE+ETHER · init 17 ×1 | emplacement FRAPPE | Puissance (Ombre ou Éther, la meilleure). Ton adversaire le plus robuste : 1–4 : 2 dégâts. 5–9 : 3 dégâts et Vulnérable. 10+ : 5 dégâts et Vulnérable. | adversaire le plus robuste | POWER_ROLL, DAMAGE, FOR_EACH, APPLY_STATUS | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé ; compte pour deux écoles |
 | `rune.instable` | Rune instable | Instable ×6 | 1 emplacement (libre) | Se place dans n'importe quel emplacement. Au dévoilement, elle est remplacée par la première rune de la pioche correspondant à cet emplacement. | — | — | — | remplacée au dévoilement |
+| `rune.braise.braises-dormantes` | Braises dormantes | AMORCE · BRAISE ×2 | emplacement AMORCE | Chaque adversaire reçoit 1 Brûlure (2 tours). | tous les adversaires | APPLY_STATUS | — | — |
+| `rune.braise.aura-ardente` | Aura ardente | AMORCE · BRAISE ×1 | emplacement AMORCE | Tu gagnes Aura ardente (2 tours) : à chaque fin de tour, chaque adversaire subit 1 dégât. | soi | APPLY_STATUS | — | — |
+| `rune.braise.embrasement` | Embrasement | TORSION · BRAISE ×2 | emplacement TORSION | Chaque adversaire subit 2 dégâts par cumul de Brûlure qu'il porte, puis sa Brûlure s'éteint. | tous les adversaires | FOR_EACH, DAMAGE, REMOVE_STATUS | — | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir |
+| `rune.braise.forge-vive` | Forge vive | TORSION · BRAISE ×2 | emplacement TORSION | Tu gagnes 1 Rage (2 tours) par rune de Braise de ton sort. | soi | APPLY_STATUS | — | — |
+| `rune.braise.meteore` | Météore | FRAPPE · BRAISE · init 6 ×1 | emplacement FRAPPE | Puissance de Braise. Un adversaire de ton choix : 1–4 : 3 dégâts. 5–9 : 5 dégâts. 10+ : 7 dégâts. Tu perds 1 PV (recul). | au choix, soi | POWER_ROLL, DAMAGE, LOSE_HP | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.braise.souffle-du-dragon` | Souffle du dragon | FRAPPE · BRAISE · init 13 ×2 | emplacement FRAPPE | Puissance de Braise. Tes deux voisins : 1–4 : 2 dégâts. 5–9 : 3 dégâts. 10+ : 4 dégâts et 1 Brûlure. | gauche, droite | POWER_ROLL, DAMAGE, APPLY_STATUS | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.ombre.marque-du-fossoyeur` | Marque du fossoyeur | AMORCE · OMBRE ×2 | emplacement AMORCE | Ton adversaire le plus affaibli reçoit 2 Marques (2 tours) : il subit 1 dégât de plus par Marque à chaque coup. | adversaire le plus affaibli | APPLY_STATUS | — | — |
+| `rune.ombre.sangsue` | Sangsue | AMORCE · OMBRE ×2 | emplacement AMORCE | Draine 1 PV à chaque adversaire. | tous les adversaires | DRAIN | — | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; bloquée par Maudit |
+| `rune.ombre.peste-noire` | Peste noire | TORSION · OMBRE ×2 | emplacement TORSION | Chaque adversaire reçoit 1 Venin (3 tours), ou 2 Venin s'il est déjà empoisonné. | tous les adversaires | FOR_EACH, IF, APPLY_STATUS | HAS_STATUS | — |
+| `rune.ombre.transfert-des-maux` | Transfert des maux | TORSION · OMBRE ×2 | emplacement TORSION | Tous tes effets néfastes passent sur un adversaire de ton choix. | soi | TRANSFER_STATUS | — | — |
+| `rune.ombre.moisson-des-ames` | Moisson des âmes | FRAPPE · OMBRE · init 16 ×1 | emplacement FRAPPE | Puissance d'Ombre. Ton adversaire le plus affaibli : 1–4 : 2 dégâts. 5–9 : 3 dégâts. 10+ : 5 dégâts. Puis 2 dégâts de plus par sorcier déjà mort cette manche. | adversaire le plus affaibli | POWER_ROLL, DAMAGE | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.ombre.sentence-du-venin` | Sentence du venin | FRAPPE · OMBRE · init 3 ×2 | emplacement FRAPPE | Puissance d'Ombre. Chaque adversaire subit autant de dégâts que ses cumuls de Venin (1–4), +1 (5–9), ou le double (10+). | tous les adversaires | POWER_ROLL, FOR_EACH, DAMAGE | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.seve.racines-profondes` | Racines profondes | AMORCE · SEVE ×2 | emplacement AMORCE | Tu gagnes 2 Carapace (2 tours) : −1 dégât subi par cumul, à chaque coup. | soi | APPLY_STATUS | — | — |
+| `rune.seve.rosee-du-matin` | Rosée du matin | AMORCE · SEVE ×2 | emplacement AMORCE | Retire tes effets néfastes, puis tu récupères 2 PV. | soi | REMOVE_STATUS, HEAL | — | bloquée par Maudit |
+| `rune.seve.symbiose` | Symbiose | TORSION · SEVE ×2 | emplacement TORSION | Tu récupères 1 PV, plus 2 PV par invocation que tu contrôles. Tes invocations récupèrent 3 PV. | soi, MY_SUMMONS | HEAL | — | bloquée par Maudit |
+| `rune.seve.coeur-de-chene` | Cœur de chêne | TORSION · SEVE ×2 | emplacement TORSION | Tu gagnes Lien vital (2 tours) : chaque fois que tu blesses un adversaire, tu récupères 1 PV (3 fois par tour). | soi | APPLY_STATUS | — | — |
+| `rune.seve.charge-du-bosquet` | Charge du bosquet | FRAPPE · SEVE · init 7 ×2 | emplacement FRAPPE | Puissance de Sève. Un adversaire de ton choix : 1–4 : 1 dégât. 5–9 : 2 dégâts. 10+ : 3 dégâts. Puis chacune de tes invocations inflige 2 dégâts à un adversaire aléatoire. | au choix, MY_SUMMONS, adversaire aléatoire | POWER_ROLL, DAMAGE, FOR_EACH | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.seve.colere-de-la-foret` | Colère de la forêt | FRAPPE · SEVE · init 12 ×1 | emplacement FRAPPE | Puissance de Sève. Chaque adversaire : 1–4 : 1 dégât. 5–9 : 2 dégâts. 10+ : 3 dégâts. Si tu as 8 PV ou moins, chaque adversaire subit 2 dégâts de plus. | tous les adversaires | POWER_ROLL, DAMAGE, IF | jet de Puissance ; HP_AT_MOST | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.ether.hate-astrale` | Hâte astrale | AMORCE · ETHER ×2 | emplacement AMORCE | Tu gagnes Hâte (+8 à l'initiative, 2 tours) et pioches 1 rune. | soi | APPLY_STATUS, DRAW | — | — |
+| `rune.ether.meditation` | Méditation | AMORCE · ETHER ×2 | emplacement AMORCE | Tu gagnes 1 Inspiration (+1 rune en main, 2 tours) et 1 Égide, puis pioches 1 rune. | soi | APPLY_STATUS, DRAW | — | — |
+| `rune.ether.stase` | Stase | TORSION · ETHER ×2 | emplacement TORSION | Un adversaire de ton choix est Gelé (2 tours) : −1 dé de Puissance et −8 à l'initiative. | au choix | APPLY_STATUS | — | — |
+| `rune.ether.invocation-cristalline` | Invocation cristalline | TORSION · ETHER ×1 | emplacement TORSION | Invoque une Sentinelle de cristal (5 PV) : au début de chaque tour, elle te donne Clairvoyance (+1 dé). | invocation | SUMMON | — | — |
+| `rune.ether.comete` | Comète | FRAPPE · ETHER · init 18 ×2 | emplacement FRAPPE | Puissance d'Éther. Ton adversaire le plus robuste : 1–4 : 2 dégâts. 5–9 : 3 dégâts. 10+ : 4 dégâts. Si ton sort est le premier résolu ce tour, 2 dégâts de plus. | adversaire le plus robuste | POWER_ROLL, DAMAGE, IF | jet de Puissance ; CAST_FIRST | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.ether.savoir-interdit` | Savoir interdit | FRAPPE · ETHER · init 9 ×2 | emplacement FRAPPE | Puissance d'Éther. Un adversaire de ton choix : 1–4 : 1 dégât. 5–9 : 2 dégâts. 10+ : 3 dégâts. Puis 1 dégât de plus par tranche de 2 runes dans ta main. | au choix | FOR_EACH, POWER_ROLL, DAMAGE | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.chimere.tour-de-passe-passe` | Tour de passe-passe | AMORCE · CHIMERE ×2 | emplacement AMORCE | Tu voles tous les effets bénéfiques d'un adversaire de ton choix. | au choix | TRANSFER_STATUS | — | — |
+| `rune.chimere.jeu-de-dupes` | Jeu de dupes | AMORCE · CHIMERE ×2 | emplacement AMORCE | Au hasard : tu gagnes 2 Rage ; OU tu gagnes 3 Égide ; OU tu pioches 2 runes. | soi | RANDOM, APPLY_STATUS, DRAW | — | — |
+| `rune.chimere.reflet-trompeur` | Reflet trompeur | TORSION · CHIMERE ×2 | emplacement TORSION | Invoque un Double illusoire (3 PV) : en fin de tour, une chance sur deux d'infliger 2 dégâts à un adversaire aléatoire. | invocation | SUMMON | — | — |
+| `rune.chimere.pari-du-fou` | Pari du fou | TORSION · CHIMERE ×2 | emplacement TORSION | Pile : tu gagnes 2 Surcharge (tes deux prochains effets de dégâts sont doublés). Face : tu perds 3 PV. | soi | IF, APPLY_STATUS, LOSE_HP | CHANCE | — |
+| `rune.chimere.loterie-infernale` | Loterie infernale | FRAPPE · CHIMERE · init 10 ×1 | emplacement FRAPPE | Puissance de Chimère. 1–4 : 2 dégâts à un adversaire aléatoire. 5–9 : 2 dégâts à chaque adversaire. 10+ : 3 dégâts à chaque adversaire et tu gagnes une relique. | adversaire aléatoire, tous les adversaires, soi | POWER_ROLL, DAMAGE, GAIN_RELIC | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.chimere.grand-chapardage` | Grand chapardage | FRAPPE · CHIMERE · init 4 ×2 | emplacement FRAPPE | Puissance de Chimère. Un adversaire de ton choix : 1–4 : 2 dégâts et tu lui voles 1 rune. 5–9 : 3 dégâts et 1 rune. 10+ : 4 dégâts et 2 runes. | au choix | FOR_EACH, POWER_ROLL, DAMAGE, STEAL_CARD | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé |
+| `rune.duo.cendres-fertiles` | Cendres fertiles | AMORCE · BRAISE+SEVE ×1 | emplacement AMORCE | Tu récupères 2 PV. Le sorcier à ta gauche reçoit 1 Brûlure (2 tours). | soi, gauche | HEAL, APPLY_STATUS | — | bloquée par Maudit ; compte pour deux écoles |
+| `rune.duo.prisme-incandescent` | Prisme incandescent | TORSION · BRAISE+ETHER ×1 | emplacement TORSION | Tu gagnes Clairvoyance (+1 dé, 2 tours) et 1 Rage (2 tours). | soi | APPLY_STATUS | — | compte pour deux écoles |
+| `rune.duo.racines-putrides` | Racines putrides | TORSION · OMBRE+SEVE ×1 | emplacement TORSION | Un adversaire de ton choix reçoit 1 Venin et Faiblesse ; tu gagnes 1 Régénération. | au choix, soi | FOR_EACH, APPLY_STATUS | — | compte pour deux écoles |
+| `rune.duo.spores-hallucinogenes` | Spores hallucinogènes | AMORCE · SEVE+CHIMERE ×1 | emplacement AMORCE | Un adversaire aléatoire devient Vulnérable (1 tour). Tu récupères 2 PV. | adversaire aléatoire, soi | APPLY_STATUS, HEAL | — | bloquée par Maudit ; compte pour deux écoles |
+| `rune.duo.cauchemar` | Cauchemar | FRAPPE · OMBRE+CHIMERE · init 11 ×1 | emplacement FRAPPE | Puissance (Ombre ou Chimère). Un adversaire de ton choix : 1–4 : 2 dégâts et 1 rune défaussée au hasard. 5–9 : 3 dégâts et 1 rune. 10+ : 4 dégâts et 2 runes. | au choix | FOR_EACH, POWER_ROLL, DAMAGE, DISCARD | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé ; compte pour deux écoles |
+| `rune.duo.paradoxe-temporel` | Paradoxe temporel | FRAPPE · ETHER+CHIMERE · init 15 ×1 | emplacement FRAPPE | Puissance (Éther ou Chimère). Tu pioches 1 / 2 / 3 runes et ton adversaire le plus robuste subit 1 / 2 / 3 dégâts selon le palier. | soi, adversaire le plus robuste | POWER_ROLL, DRAW, DAMAGE | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé ; compte pour deux écoles |
+| `rune.duo.brasier-funebre` | Brasier funèbre | FRAPPE · BRAISE+OMBRE · init 14 ×1 | emplacement FRAPPE | Puissance (Braise ou Ombre). Chaque adversaire : 1–4 : 1 dégât. 5–9 : 2 dégâts. 10+ : 3 dégâts, 1 Brûlure et 1 Venin. | tous les adversaires | POWER_ROLL, DAMAGE, APPLY_STATUS | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; +1 dé avec Clairvoyance / Dé pipé ; compte pour deux écoles |
+| `rune.duo.aurore` | Aurore | FRAPPE · SEVE+ETHER · init 2 ×1 | emplacement FRAPPE | Puissance (Sève ou Éther). Tu récupères 2 / 3 / 4 PV, gagnes 1 / 2 / 3 Égide, et le sorcier à ta gauche subit 1 / 2 / 3 dégâts selon le palier. | soi, gauche | POWER_ROLL, HEAL, APPLY_STATUS, DAMAGE | jet de Puissance | modifiée par Rage/Faiblesse/Surcharge, Égide, Carapace, Intangible ; déclenche Épines/Miroir ; bloquée par Maudit ; +1 dé avec Clairvoyance / Dé pipé ; compte pour deux écoles |
 
-## Reliques (12 cartes, 20 exemplaires)
+## Reliques (22 cartes, 34 exemplaires)
 
 | ID | Nom | Type | Coût | Description | Cible | Effets | Conditions | Interactions |
 |---|---|---|---|---|---|---|---|---|
@@ -75,8 +113,18 @@
 | `relic.couronne-de-ronces` | Couronne de ronces | Relique éternelle ×1 | — | Éternelle. Au début de chaque manche, tu gagnes Épines (2 tours). | porteur | déclencheur ON_ROUND_START | — | — |
 | `relic.sac-a-malices` | Sac à malices | Relique ×2 | — | Quand tu lances un sort, une chance sur quatre de piocher 1 rune. | porteur | déclencheur ON_SPELL_CAST | — | — |
 | `relic.lanterne-des-morts` | Lanterne des morts | Relique ×1 | — | Quand un autre sorcier meurt, tu gagnes 2 Égide. | porteur | déclencheur ON_ANY_DEATH | — | — |
+| `relic.oeuf-de-salamandre` | Œuf de salamandre | Relique ×1 | — | Au début de chaque manche, une Salamandre (3 PV) éclot à tes côtés : elle inflige 1 Brûlure à chaque fin de tour. | invocation | déclencheur ON_ROUND_START | — | — |
+| `relic.fiole-de-venin` | Fiole de venin | Relique ×2 | — | Tes dégâts d'Ombre sont augmentés de 1. | — | modificateur DAMAGE_OUT ADD | — | — |
+| `relic.dague-du-filou` | Dague du filou | Relique ×2 | — | Tes dégâts de Chimère sont augmentés de 1. | — | modificateur DAMAGE_OUT ADD | — | — |
+| `relic.graine-eternelle` | Graine éternelle | Relique éternelle ×1 | — | Éternelle. Au début de chaque manche, un Golem de mousse (6 PV) se lève à tes côtés. | invocation | déclencheur ON_ROUND_START | — | — |
+| `relic.lentille-astrale` | Lentille astrale | Relique ×2 | — | Quand ton jet de Puissance totalise 10 ou plus, tu pioches 1 rune. | porteur | déclencheur ON_DICE_ROLLED | — | — |
+| `relic.collier-de-crocs` | Collier de crocs | Relique ×1 | — | Quand tu élimines un sorcier, tu gagnes 2 Rage (2 tours). | porteur | déclencheur ON_KILL | — | — |
+| `relic.masque-du-bouffon` | Masque du bouffon | Relique ×1 | — | Une fois par tour, quand un adversaire te blesse, une chance sur quatre de devenir Intangible jusqu'à la fin du tour. | porteur | déclencheur ON_DAMAGE_RECEIVED | — | — |
+| `relic.talisman-de-seve` | Talisman de sève | Relique ×2 | — | Chaque soin que tu reçois te rend 1 PV de plus. | — | modificateur HEAL_IN ADD | — | — |
+| `relic.cloche-funebre` | Cloche funèbre | Relique ×1 | — | Quand un autre sorcier meurt, chacun de tes adversaires subit 1 dégât. | tous les adversaires | déclencheur ON_ANY_DEATH | — | — |
+| `relic.plume-de-phenix` | Plume de phénix | Relique éternelle ×1 | — | Éternelle. +2 PV maximum. Au début de chaque manche, tu gagnes 2 Égide. | porteur | modificateur MAX_HP ADD, déclencheur ON_ROUND_START | — | — |
 
-## Rancunes (8 cartes, 20 exemplaires)
+## Rancunes (12 cartes, 27 exemplaires)
 
 | ID | Nom | Type | Coût | Description | Cible | Effets | Conditions | Interactions |
 |---|---|---|---|---|---|---|---|---|
@@ -88,6 +136,10 @@
 | `grudge.malediction-posthume` | Malédiction posthume | Rancune ×2 | — | Ton adversaire le plus robuste reçoit Faiblesse et Maudit (2 tours). | adversaire le plus robuste | APPLY_STATUS | — | — |
 | `grudge.feu-follet` | Feu follet vengeur | Rancune ×2 | — | Invoque un Feu follet (3 PV) qui inflige 1 dégât à un adversaire aléatoire à chaque fin de tour. | invocation | SUMMON | — | — |
 | `grudge.rancoeur` | Rancœur | Rancune ×2 | — | Tu gagnes 2 Rage (2 tours). | soi | APPLY_STATUS | — | — |
+| `grudge.spectre-vengeur` | Spectre vengeur | Rancune ×2 | — | Invoque un Spectre affamé (4 PV) : à chaque fin de tour, il blesse l'adversaire le plus affaibli et te rend 1 PV. | invocation | SUMMON | — | — |
+| `grudge.hantise` | Hantise | Rancune ×2 | — | Le sorcier qui t'a éliminé reçoit 2 Marques et 1 Venin. | ton meurtrier | APPLY_STATUS | — | — |
+| `grudge.elan-d-outre-tombe` | Élan d'outre-tombe | Rancune ×2 | — | Tu gagnes Hâte (+8 à l'initiative, 2 tours) et pioches 1 rune. | soi | APPLY_STATUS, DRAW | — | — |
+| `grudge.brume-d-outre-tombe` | Brume d'outre-tombe | Rancune ×1 | — | Tu es Intangible pendant le premier tour de la manche. | soi | APPLY_STATUS | — | — |
 
 ## Statuts
 
@@ -106,6 +158,12 @@
 | `clairvoyance` | Clairvoyance | BUFF | REFRESH (max 1) | 2 | +1 dé aux jets de Puissance. |
 | `maudit` | Maudit | DEBUFF | REFRESH (max 1) | 2 | Ne peut pas récupérer de PV. |
 | `carapace` | Carapace | BUFF | STACK (max 3) | 2 | −1 aux dégâts subis par cumul. |
+| `marque` | Marque | DEBUFF | STACK (max 3) | 2 | Subit 1 dégât de plus par cumul, à chaque coup. |
+| `gel` | Gel | DEBUFF | REFRESH (max 1) | 2 | −1 dé de Puissance et −8 à l'initiative. |
+| `hate` | Hâte | BUFF | REFRESH (max 1) | 2 | +8 à l'initiative. |
+| `inspiration` | Inspiration | BUFF | STACK (max 2) | 2 | +1 rune en main par cumul. |
+| `aura-ardente` | Aura ardente | BUFF | REFRESH (max 1) | 2 | En fin de tour, chaque adversaire subit 1 dégât. |
+| `lien-vital` | Lien vital | BUFF | REFRESH (max 1) | 2 | Chaque fois qu'il blesse un adversaire, récupère 1 PV (3 fois par tour au plus). |
 | `vigueur-spectrale` | Vigueur spectrale | BUFF | IGNORE (max 1) | PERMANENT | +4 PV maximum pour la manche. |
 
 ## Invocations
@@ -115,3 +173,7 @@
 | `feu-follet` | Feu follet | 3 | En fin de tour, inflige 1 dégât à un adversaire aléatoire. |
 | `golem-de-mousse` | Golem de mousse | 6 | En fin de tour, donne 1 Égide à son maître. |
 | `corbeau-charognard` | Corbeau charognard | 2 | Quand un sorcier meurt, son maître récupère 2 PV et pioche 1 rune. |
+| `salamandre` | Salamandre | 3 | En fin de tour, inflige 1 Brûlure à un adversaire aléatoire. |
+| `spectre-affame` | Spectre affamé | 4 | En fin de tour, inflige 1 dégât à l'adversaire le plus affaibli et rend 1 PV à son maître. |
+| `sentinelle-de-cristal` | Sentinelle de cristal | 5 | Au début de chaque tour, donne Clairvoyance (+1 dé) à son maître pour ce tour. |
+| `double-illusoire` | Double illusoire | 3 | En fin de tour, une chance sur deux d'infliger 2 dégâts à un adversaire aléatoire. |

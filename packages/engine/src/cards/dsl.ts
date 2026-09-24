@@ -16,6 +16,8 @@ export const T = {
   WEAKEST_FOE: { sel: "WEAKEST_FOE" },
   RANDOM_FOE: { sel: "RANDOM_FOE" },
   ALL_FOE_SUMMONS: { sel: "ALL_FOE_SUMMONS" },
+  MY_SUMMONS: { sel: "MY_SUMMONS" },
+  ALL_SUMMONS: { sel: "ALL_SUMMONS" },
   MY_KILLER: { sel: "MY_KILLER" },
   EVENT_SOURCE: { sel: "EVENT_SOURCE" },
   EVENT_TARGET: { sel: "EVENT_TARGET" },
