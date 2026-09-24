@@ -163,9 +163,11 @@ describe("deux onglets", () => {
     expect(overflow).toBeLessThanOrEqual(1);
     await shot(a, "5-mobile");
     // Le journal s'ouvre en tiroir.
-    await a.getByRole("button", { name: "Journal" }).tap();
+    await a.getByRole("button", { name: "Journal", exact: true }).tap();
     await a.locator(".log-panel.is-open").waitFor();
     await shot(a, "6-mobile-log");
+    await a.getByRole("button", { name: "Fermer le journal" }).tap();
+    await a.locator(".log-panel.is-open").waitFor({ state: "detached" });
     await context.close();
   }, 60_000);
 });
