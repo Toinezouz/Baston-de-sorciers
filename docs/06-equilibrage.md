@@ -146,3 +146,33 @@ sort affiche « 🎯 +2 dés » et le total de dés par école.
 2. Si Cratère domine, réduire son palier 10+ de 5 à 4 dégâts.
 3. Envisager un léger avantage pour les sorts à trois runes (tirer 1 relique au troisième sort d'une manche ?) si
    la Concentration rend les sorts courts trop attractifs entre humains.
+
+## 8. Extension « Échos du Grimoire » (122 cartes) et bots
+
+Résultats après l'ajout de 52 cartes (600 parties, 4 stratégies) :
+
+| Indicateur | Avant | Après |
+|---|---|---|
+| mono / duo / aléatoire / éclair | 45,8 / 43,2 / 9,3 / 1,7 % | 44,2 / 41,0 / 13,2 / 1,7 % |
+| Tours par manche | 8,6 | 7,7 |
+| Avantage de siège | 23,7 à 26,3 % | 23,3 à 25,8 % |
+| Garde-fous déclenchés | 0 | **0** |
+
+La hiérarchie des stratégies est inchangée et les nouvelles synergies n'introduisent pas de boucle. Le hasard
+pèse un peu plus (le bot aléatoire passe de 9 à 13 %), ce qui reste raisonnable pour un jeu d'ambiance.
+
+**Niveaux de bots** (sièges tournants) :
+- difficile contre facile : 85,5 % ;
+- difficile contre la meilleure stratégie simple (`mono`) : 52,8 % à 4 joueurs, 54 % en duel.
+
+Le niveau difficile n'achève qu'en fin de manche. Plus tôt, éliminer un adversaire profite surtout aux autres, puisque
+seul le dernier debout gagne : la simulation le montre (achever tôt coûtait 26 % de victoires contre 33 %).
+
+### Nouveaux combos à surveiller
+| Combo | Pourquoi | Garde-fou |
+|---|---|---|
+| Braises dormantes + Forge vive (+ Aura ardente) | Les Brûlures agissent au nom du lanceur (D18) : sa Rage s'ajoute à chaque tick, sur chaque adversaire | Rage limitée à 3 cumuls pendant 2 tours ; Dissipation ; Rosée du matin |
+| Braises / Attise, puis Embrasement | Encaisse toutes les Brûlures d'un coup (2 par cumul) | Brûlure limitée à 3 cumuls, donc 6 dégâts au plus par adversaire |
+| Peste noire, puis Sentence du venin | Venin répandu puis exécuté | Venin limité à 5 cumuls ; la Sentence exige un bon jet pour doubler |
+| Transfert des maux / Tour de passe-passe | Retournements soudains | Un seul transfert par rune ; les statuts gardent leur durée |
+| Invocations + Symbiose / Charge du bosquet | Montée en puissance si on laisse vivre les invocations | 3 invocations max par sorcier ; elles disparaissent en fin de manche et sont ciblables |

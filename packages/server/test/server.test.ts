@@ -328,3 +328,47 @@ describe("revanche", () => {
     expect((await fetch(`${srv.url}/api/games/${oldCode}`)).status).toBe(404);
   }, 30_000);
 });
+
+describe("bots", () => {
+  it("l'hôte ajoute et retire des bots ; un invité ne peut pas", async () => {
+    srv = await startServer();
+    const a = await track(client(srv.url));
+    const g = await a.create("Alex");
+    if (!g.ok) throw new Error();
+    const b = await track(client(srv.url));
+    await b.join(g.data.gameId, "Marie");
+    expect(reason(await b.request(C2S.ADD_BOT, { level: "normal" }))).toBe("NOT_HOST");
+    expect(reason(await a.request(C2S.ADD_BOT, { level: "expert" }))).toBe("INVALID_PAYLOAD");
+    const added = await a.request<{ playerId: string }>(C2S.ADD_BOT, { level: "difficile" });
+    expect(reason(added)).toBe("OK");
+    const lobby = await a.waitFor((s) => s.view.public.players.length === 3);
+    const bot = lobby.view.public.players.find((p) => p.isBot)!;
+    expect(bot).toMatchObject({ ready: true, isHost: false });
+    if (!added.ok) return;
+    expect(reason(await a.request(C2S.REMOVE_BOT, { playerId: added.data.playerId }))).toBe("OK");
+    await a.waitFor((s) => s.view.public.players.length === 2);
+    expect(reason(await a.request(C2S.REMOVE_BOT, { playerId: b.session!.playerId }))).toBe("NOT_IN_GAME");
+  });
+
+  it("un humain joue une partie complète contre 3 bots, puis une revanche avec les mêmes bots", async () => {
+    srv = await startServer({ gameOverrides: { planningMs: 3000, choiceMs: 1000 }, rateLimit: { burst: 1000, perSecond: 1000 } });
+    const human = await track(client(srv.url));
+    const g = await human.create("Solo", { mode: "quick" });
+    if (!g.ok) throw new Error();
+    for (const level of ["facile", "normal", "difficile"]) expect(reason(await human.request(C2S.ADD_BOT, { level }))).toBe("OK");
+    await human.waitFor((s) => s.view.public.players.length === 4);
+    expect(reason(await human.act({ type: "START_GAME" }))).toBe("OK");
+    await human.waitFor((s) => s.view.public.phase === "PLANNING");
+    // Les bots préparent leur sort seuls.
+    await human.waitFor((s) => s.view.public.players.filter((p) => p.isBot && p.spell?.locked).length === 3);
+    await playUntilOver([human], 40_000);
+    const end = await human.waitFor((s) => s.view.public.phase === "GAME_OVER");
+    expect(end.view.public.winnerId).toBeTruthy();
+    // Aucun bot n'a vu d'action refusée : la partie est allée à son terme sans blocage.
+    const rematch = await human.request<SessionInfo>(C2S.REMATCH);
+    expect(reason(rematch)).toBe("OK");
+    const lobby = await human.waitFor((s) => s.gameId !== g.data.gameId && s.view.public.players.length === 4);
+    expect(lobby.view.public.players.filter((p) => p.isBot)).toHaveLength(3);
+    if (rematch.ok) expect(lobby.view.public.hostId).toBe(rematch.data.playerId);
+  }, 60_000);
+});

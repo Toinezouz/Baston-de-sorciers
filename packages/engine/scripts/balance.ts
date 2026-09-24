@@ -8,70 +8,16 @@
  *   - eclair    : une seule rune, de préférence une Frappe à forte initiative (joue vite)
  *   - duo       : deux runes de la même école si possible
  */
-import { getCardDef } from "../src/cards/registry";
+import { planSpell, type SpellStrategy } from "../src/ai";
 import { createGame } from "../src/state/create";
 import { dispatch } from "../src/dispatch";
-import { pick, randInt, seedFromString } from "../src/rng";
-import { RUNE_SLOTS, SCHOOLS, type GameState, type PlayerAction, type RngState, type RuneSlot } from "../src/types";
+import { seedFromString } from "../src/rng";
+import type { GameState, PlayerAction, RngState } from "../src/types";
 
-type Strategy = "aleatoire" | "mono" | "eclair" | "duo" | "opportuniste";
+type Strategy = SpellStrategy;
 /** STRATS=mono,opportuniste pour choisir les stratégies (4 joueurs par défaut, 2 pour un duel). */
 const STRATEGIES: Strategy[] = (process.env.STRATS?.split(",") as Strategy[] | undefined) ?? ["aleatoire", "mono", "eclair", "duo"];
-
-function spellFor(s: GameState, pid: string, strat: Strategy, rng: RngState): { cardId: string; slot: RuneSlot }[] {
-  const hand = s.players[pid]!.hand.map((id) => ({ id, def: getCardDef(s.cards[id]!.defId) })).filter((c) => !c.def.unstable);
-  if (!hand.length) {
-    const any = s.players[pid]!.hand[0];
-    return any ? [{ cardId: any, slot: "AMORCE" }] : [];
-  }
-  const bySlot = (cards: typeof hand) => {
-    const out: { cardId: string; slot: RuneSlot }[] = [];
-    for (const slot of RUNE_SLOTS) {
-      const c = cards.find((x) => x.def.slot === slot);
-      if (c) out.push({ cardId: c.id, slot });
-    }
-    return out;
-  };
-  switch (strat) {
-    case "aleatoire": {
-      const out: { cardId: string; slot: RuneSlot }[] = [];
-      for (const slot of RUNE_SLOTS) {
-        if (randInt(rng, 100) >= 60) continue;
-        const cands = hand.filter((c) => c.def.slot === slot);
-        if (cands.length) out.push({ cardId: pick(rng, cands).id, slot });
-      }
-      return out.length ? out : [{ cardId: hand[0]!.id, slot: hand[0]!.def.slot! }];
-    }
-    case "mono": {
-      let best: { cardId: string; slot: RuneSlot }[] = [];
-      for (const school of SCHOOLS) {
-        const spell = bySlot(hand.filter((c) => c.def.schools.includes(school)));
-        if (spell.length > best.length) best = spell;
-      }
-      return best;
-    }
-    case "duo": {
-      for (const school of SCHOOLS) {
-        const spell = bySlot(hand.filter((c) => c.def.schools.includes(school)));
-        if (spell.length >= 2) return spell.slice(-2);
-      }
-      return bySlot(hand).slice(-2);
-    }
-    case "opportuniste": {
-      // Un adversaire est à portée (≤ 4 PV) : Frappe la plus rapide seule pour l'achever avant qu'il n'agisse.
-      const foes = s.seatOrder.filter((id) => id !== pid && s.players[id]!.alive);
-      const lowFoe = foes.some((id) => s.players[id]!.hp <= 4);
-      const frappes = hand.filter((c) => c.def.slot === "FRAPPE").sort((a, b) => (b.def.initiative ?? 0) - (a.def.initiative ?? 0));
-      if (lowFoe && frappes[0]) return [{ cardId: frappes[0].id, slot: "FRAPPE" }];
-      return spellFor(s, pid, "mono", rng);
-    }
-    case "eclair": {
-      const frappes = hand.filter((c) => c.def.slot === "FRAPPE").sort((a, b) => (b.def.initiative ?? 0) - (a.def.initiative ?? 0));
-      const c = frappes[0] ?? hand[0]!;
-      return [{ cardId: c.id, slot: c.def.slot! }];
-    }
-  }
-}
+const spellFor = (s: GameState, pid: string, strat: Strategy, rng: RngState) => planSpell(s, pid, strat, rng);
 
 function act(s: GameState, playerId: string, action: PlayerAction): GameState {
   const r = dispatch(s, { playerId, action });

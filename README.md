@@ -13,12 +13,13 @@ Les sorts sont révélés, puis résolus du plus court au plus long. Le dernier 
 | Phase | Contenu | Documentation |
 |---|---|---|
 | 1 | Analyse, règles, architecture | [`docs/01-analyse.md`](docs/01-analyse.md) |
-| 2–3 | Moteur de règles pur et déterministe, 70 cartes originales, tests et fuzzing | [`docs/03-moteur.md`](docs/03-moteur.md), [`docs/02-cartes.md`](docs/02-cartes.md) |
+| 2–3 | Moteur de règles pur et déterministe, cartes originales, tests et fuzzing | [`docs/03-moteur.md`](docs/03-moteur.md), [`docs/02-cartes.md`](docs/02-cartes.md) |
 | 4 | Serveur autoritaire temps réel : lobby, Socket.IO, reconnexion, sécurité | [`docs/04-serveur.md`](docs/04-serveur.md) |
 | 5–6 | Client React connecté, jouable sur ordinateur et mobile | [`docs/05-client.md`](docs/05-client.md) |
 | 7 | Rejeu animé, sons, raccourcis, revanche, équilibrage par simulation, déploiement | [`docs/06-equilibrage.md`](docs/06-equilibrage.md) |
+| + | Extension « Échos du Grimoire » (**122 cartes**), **bots** (3 niveaux), **illustrations** de toutes les cartes, grimoire | [`docs/03-moteur.md`](docs/03-moteur.md) §9, [`docs/05-client.md`](docs/05-client.md) §7 |
 
-Environ 215 tests unitaires et d'intégration, plus 3 tests de bout en bout dans un vrai navigateur (deux onglets jouent l'un contre l'autre).
+Environ 270 tests unitaires et d'intégration, plus 4 tests de bout en bout dans un vrai navigateur (deux onglets l'un contre l'autre, partie solo contre des bots, rejeu, mobile).
 
 ## Règles en bref
 
@@ -45,8 +46,10 @@ npm install
 npm run dev
 ```
 
-Ouvrez **http://localhost:5173**, créez une partie, puis ouvrez le lien d'invitation dans un **deuxième onglet**
-(ou sur un autre appareil du même réseau) : les deux onglets jouent l'un contre l'autre.
+Ouvrez **http://localhost:5173** puis :
+- **« Jouer contre des bots »** pour une partie solo immédiate (1 à 5 bots, facile / normal / difficile) ;
+- ou créez une partie et ouvrez le lien d'invitation dans un **deuxième onglet** (ou sur un autre appareil du même
+  réseau) : les deux onglets jouent l'un contre l'autre. L'hôte peut aussi compléter la table avec des bots.
 
 ## Commandes
 
@@ -66,7 +69,8 @@ npm run cards:doc     # régénère docs/02-cartes.md depuis le catalogue
 ## Ajouter une carte ou un effet
 
 - **Nouvelle carte** : ajoutez un objet de données dans `packages/engine/src/cards/` (runes, reliques, rancunes),
-  lancez `npm test` (le catalogue est validé automatiquement) puis `npm run cards:doc`.
+  choisissez son illustration dans `packages/client/src/art/cardArt.ts`, lancez `npm test` (catalogue et
+  illustrations validés automatiquement) puis `npm run cards:doc`.
 - **Nouvel effet** : ajoutez une variante à `EffectNode` (`types.ts`) et son opérateur dans `effects/operators.ts`.
   Le compilateur signale tout oubli.
 - Pas à pas détaillé : [`docs/03-moteur.md`](docs/03-moteur.md) §4 et §5.

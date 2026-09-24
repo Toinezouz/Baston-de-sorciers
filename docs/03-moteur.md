@@ -176,3 +176,27 @@ Invariants vérifiés en continu par le fuzzing :
 - un choix en attente existe si et seulement si la phase est `AWAITING_CHOICE` ;
 - un minuteur est armé pour chaque phase d'attente ;
 - la file de résolution est vide en dehors d'une suspension.
+
+## 9. Extension « Échos du Grimoire » et bots
+
+### Primitives ajoutées (utilisables par toute nouvelle carte)
+| Type | Ajouts |
+|---|---|
+| Montants (`Amount.from`) | `IT_STATUS_STACKS` (cumuls d'un statut sur l'entité courante), `MY_SUMMON_COUNT`, `HAND_SIZE`, `MY_RELIC_COUNT`, `ALIVE_FOES` |
+| Cibles (`TargetSpec.sel`) | `MY_SUMMONS`, `ALL_SUMMONS` |
+| Conditions | `HP_AT_LEAST`, `CONTROLS_SUMMON`, `CAST_FIRST` (mon sort est résolu le premier), `CAST_LAST` |
+| Opérateur | `TRANSFER_STATUS { from, to, polarity }` : déplace les bonus ou les malus d'une entité vers une autre |
+| Statuts | Marque, Gel, Hâte, Inspiration, Aura ardente, Lien vital |
+| Invocations | Salamandre, Spectre affamé, Sentinelle de cristal, Double illusoire |
+
+Le catalogue compte **122 cartes** : 88 runes (`runes.ts` + `runes-echos.ts`), 22 reliques et 12 rancunes.
+Les synergies sont décrites en tête de `cards/runes-echos.ts`, et le détail carte par carte dans `docs/02-cartes.md`.
+
+### Intelligence des bots (`src/ai.ts`)
+- `botDecide(state, playerId, niveau, rng)` retourne les actions à envoyer. Elle respecte l'équité : le bot ne lit que
+  ce qu'un humain à sa place verrait, et il utilise son propre générateur aléatoire, jamais celui de la partie.
+- Niveaux : **facile** (runes au hasard), **normal** (deux runes d'une même école), **difficile**
+  (stratégie `prudent` : sort mono-école ; en fin de manche, achève d'une Frappe rapide ; en danger, évite les
+  cartes qui le blessent et préfère se protéger).
+- `planSpell(state, pid, stratégie, rng)` est réutilisé par `npm run balance`.
+- Les joueurs bots portent `isBot: true`, sont prêts d'office et ne sont jamais hôtes (règle serveur).

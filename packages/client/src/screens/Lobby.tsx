@@ -1,4 +1,5 @@
 import type { PlayerView } from "@baston/engine";
+import type { BotLevelName } from "@baston/shared";
 import { useState } from "react";
 import { RulesDialog } from "../components/RulesDialog";
 import { useGameClient } from "../hooks/useGame";
@@ -7,12 +8,14 @@ import { useGameClient } from "../hooks/useGame";
 export function Lobby({ view }: { view: PlayerView }) {
   const client = useGameClient();
   const [rules, setRules] = useState(false);
+  const [botLevel, setBotLevel] = useState<BotLevelName>("normal");
   const pub = view.public;
   const myId = view.private?.playerId;
   const mine = pub.players.find((p) => p.id === myId);
   const isHost = pub.hostId === myId;
   const link = `${location.origin}/partie/${pub.id}`;
   const others = pub.players.filter((p) => p.id !== pub.hostId);
+  const full = pub.players.length >= pub.config.maxPlayers;
   const canStart = isHost && pub.players.length >= pub.config.minPlayers && others.every((p) => p.ready);
 
   const copy = async () => {
@@ -54,14 +57,32 @@ export function Lobby({ view }: { view: PlayerView }) {
             <li key={p.id} className={p.id === myId ? "is-me" : undefined}>
               <span className={`dot dot-${p.connection.toLowerCase()}`} aria-hidden />
               <span className="lobby-name">
+                {p.isBot && <span aria-label="bot">🤖 </span>}
                 {p.name}
                 {p.id === myId && " (toi)"}
               </span>
               {p.isHost ? <span className="badge">hôte</span> : p.ready ? <span className="badge badge-ok">prêt ✔</span> : <span className="badge badge-wait">pas prêt</span>}
               {p.connection === "DISCONNECTED" && <span className="badge badge-wait">déconnecté</span>}
+              {p.isBot && isHost && (
+                <button type="button" className="btn btn-ghost btn-icon" onClick={() => void client.removeBot(p.id)} aria-label={`Retirer ${p.name}`}>
+                  ✕
+                </button>
+              )}
             </li>
           ))}
         </ul>
+        {isHost && (
+          <div className="add-bot">
+            <select value={botLevel} onChange={(e) => setBotLevel(e.target.value as BotLevelName)} aria-label="Niveau du bot">
+              <option value="facile">Bot facile</option>
+              <option value="normal">Bot normal</option>
+              <option value="difficile">Bot difficile</option>
+            </select>
+            <button type="button" className="btn" disabled={full} onClick={() => void client.addBot(botLevel)}>
+              🤖 Ajouter un bot
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="lobby-actions">

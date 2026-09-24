@@ -9,7 +9,12 @@
  * - Pousse à chaque joueur SA vue filtrée après chaque changement.
  */
 import {
+  BOT_NAMES,
+  botDecide,
   createGame,
+  seedFromString,
+  type BotLevel,
+  type RngState,
   dispatch,
   eventsFor,
   viewFor,
@@ -24,7 +29,7 @@ import {
 import { FULL_SYNC_EVENTS, S2C, type Ack, type KickedMessage, type RematchOfferMessage, type StateMessage } from "@baston/shared";
 import type { Socket } from "socket.io";
 import type { ServerConfig } from "./config";
-import { newPlayerId, newSessionToken } from "./ids";
+import { newPlayerId, newSeed, newSessionToken } from "./ids";
 import type { Logger } from "./logger";
 
 export interface PlayerSession {
@@ -65,6 +70,8 @@ export class Room {
   private readonly sockets = new Map<PlayerId, Socket>();
   private readonly timers = new Map<string, { handle: NodeJS.Timeout; deadline: number }>();
   private readonly reservations = new Map<PlayerId, NodeJS.Timeout>();
+  /** Bots de la partie : niveau, générateur aléatoire propre, minuteur de réflexion. */
+  readonly bots = new Map<PlayerId, { level: BotLevel; rng: RngState; timer: NodeJS.Timeout | null; acting: boolean }>();
   private chain: Promise<unknown> = Promise.resolve();
   private readonly now: () => number;
 
@@ -112,7 +119,83 @@ export class Room {
     }
     this.syncTimers();
     this.broadcast(r.events);
+    this.scheduleBots();
     return r;
+  }
+
+  // -------------------------------------------------------------------------
+  // Bots
+  // -------------------------------------------------------------------------
+
+  /** Un bot doit-il agir dans l'état courant ? */
+  private botNeedsToAct(pid: PlayerId): boolean {
+    const p = this.state.players[pid];
+    if (!p) return false;
+    if (this.state.phase === "AWAITING_CHOICE") return this.state.pendingChoice?.playerId === pid;
+    return this.state.phase === "PLANNING" && p.alive && !!p.spell && !p.spell.locked;
+  }
+
+  /** Planifie la « réflexion » des bots qui ont quelque chose à faire. */
+  private scheduleBots(): void {
+    if (this.closed) return;
+    const [min, max] = this.deps.config.botDelayMs;
+    for (const [pid, bot] of this.bots) {
+      if (bot.timer || bot.acting || !this.botNeedsToAct(pid)) continue;
+      const choosing = this.state.phase === "AWAITING_CHOICE";
+      const delay = Math.round((choosing ? 0.5 : 1) * (min + Math.random() * Math.max(0, max - min)));
+      bot.timer = setTimeout(() => {
+        bot.timer = null;
+        void this.enqueue(() => {
+          if (!this.bots.has(pid) || !this.botNeedsToAct(pid)) return;
+          bot.acting = true;
+          try {
+            for (const action of botDecide(this.state, pid, bot.level, bot.rng)) {
+              const r = this.apply({ playerId: pid, action });
+              if (!r.ok) {
+                this.deps.logger.warn("bot action rejected", { gameId: this.id, pid, action: action.type, reason: r.reason });
+                break;
+              }
+            }
+          } finally {
+            bot.acting = false;
+          }
+          this.scheduleBots();
+        }).catch(() => undefined);
+      }, delay);
+      bot.timer.unref?.();
+    }
+  }
+
+  /** Ajoute un bot (lobby uniquement). */
+  addBot(level: BotLevel): Promise<Ack<{ playerId: PlayerId }>> {
+    return this.enqueue(() => {
+      if (this.state.phase !== "LOBBY") return { ok: false as const, reason: "WRONG_PHASE" as const };
+      const used = new Set(Object.values(this.state.players).map((p) => p.name));
+      const name = BOT_NAMES.find((n) => !used.has(n)) ?? `Automate ${this.bots.size + 1}`;
+      const playerId = `bot_${newPlayerId().slice(3)}`;
+      const r = this.apply({ system: { type: "JOIN", playerId, name, bot: true } });
+      if (!r.ok) return { ok: false as const, reason: r.reason };
+      this.bots.set(playerId, { level, rng: seedFromString(newSeed()), timer: null, acting: false });
+      return { ok: true as const, data: { playerId } };
+    });
+  }
+
+  /** Retire un bot (lobby uniquement). */
+  removeBot(playerId: PlayerId): Promise<Ack<undefined>> {
+    return this.enqueue(() => {
+      const bot = this.bots.get(playerId);
+      if (!bot) return { ok: false as const, reason: "NOT_IN_GAME" as const };
+      if (this.state.phase !== "LOBBY") return { ok: false as const, reason: "WRONG_PHASE" as const };
+      if (bot.timer) clearTimeout(bot.timer);
+      this.bots.delete(playerId);
+      this.apply({ system: { type: "ABANDON", playerId } });
+      return { ok: true as const, data: undefined };
+    });
+  }
+
+  /** Niveau de chaque bot (pour la revanche). */
+  botLevels(): BotLevel[] {
+    return [...this.bots.values()].map((b) => b.level);
   }
 
   // -------------------------------------------------------------------------
@@ -306,6 +389,7 @@ export class Room {
     this.closed = true;
     for (const t of this.timers.values()) clearTimeout(t.handle);
     for (const t of this.reservations.values()) clearTimeout(t);
+    for (const b of this.bots.values()) if (b.timer) clearTimeout(b.timer);
     this.timers.clear();
     this.reservations.clear();
     for (const socket of this.sockets.values()) {

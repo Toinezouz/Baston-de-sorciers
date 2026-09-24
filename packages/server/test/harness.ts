@@ -19,6 +19,7 @@ export async function startServer(overrides: Partial<ServerConfig> = {}): Promis
     port: 0,
     host: "127.0.0.1",
     logLevel: "silent",
+    botDelayMs: [5, 20],
     ...overrides,
     gameOverrides: { planningMs: 10_000, choiceMs: 10_000, ...overrides.gameOverrides },
   };

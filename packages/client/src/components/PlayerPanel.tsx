@@ -57,6 +57,7 @@ export function PlayerPanel({ player: p, summons, isMe, isActive, isChoosing, la
       <header className="player-head">
         <span className={`dot dot-${p.connection.toLowerCase()}`} title={p.connection === "CONNECTED" ? "Connecté" : p.connection === "DISCONNECTED" ? "Déconnecté" : "A abandonné"} />
         <strong className="player-name">
+          {p.isBot && <span title="Bot">🤖 </span>}
           {p.name}
           {isMe && <em> (toi)</em>}
         </strong>

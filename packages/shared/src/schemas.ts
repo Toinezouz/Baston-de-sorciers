@@ -4,7 +4,7 @@
  */
 import { NAME_MAX_LENGTH, RUNE_SLOTS, type PlayerAction } from "@baston/engine";
 import { z } from "zod";
-import type { ActionRequest, CreateGameRequest, JoinGameRequest, ResumeRequest } from "./protocol";
+import type { ActionRequest, AddBotRequest, CreateGameRequest, JoinGameRequest, RemoveBotRequest, ResumeRequest } from "./protocol";
 
 /** Caractères de contrôle, zéro-largeur et de direction du texte (anti-usurpation visuelle). */
 const CONTROL_CHARS = new RegExp("[\\u0000-\\u001f\\u007f-\\u009f\\u200b-\\u200f\\u2028-\\u202e\\u2066-\\u2069\\ufeff]", "g");
@@ -55,3 +55,7 @@ export const resumeSchema = z.object({ token: z.string().regex(/^[a-f0-9]{64}$/)
 export const actionRequestSchema = z
   .object({ clientSeq: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER), action: playerActionSchema })
   .strict() satisfies z.ZodType<ActionRequest>;
+
+export const addBotSchema = z.object({ level: z.enum(["facile", "normal", "difficile"]) }).strict() satisfies z.ZodType<AddBotRequest>;
+
+export const removeBotSchema = z.object({ playerId: id }).strict() satisfies z.ZodType<RemoveBotRequest>;

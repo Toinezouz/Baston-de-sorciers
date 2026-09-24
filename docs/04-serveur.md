@@ -52,6 +52,8 @@ Un message sans fonction d'ack est ignoré.
 | `game:sync` | — | — (le serveur renvoie un état complet) |
 | `game:leave` | — | — |
 | `game:rematch` | — (partie terminée uniquement) | `SessionInfo` de la nouvelle partie |
+| `game:add-bot` | `{ level: "facile" \| "normal" \| "difficile" }` (lobby, hôte) | `{ playerId }` |
+| `game:remove-bot` | `{ playerId }` (lobby, hôte) | — |
 
 `SessionInfo = { gameId, playerId, token, lastClientSeq }`. Le client conserve le `token` dans `localStorage`.
 
@@ -118,6 +120,7 @@ Refus du moteur (`CARD_NOT_IN_HAND`, `WRONG_PHASE`, `SPELL_LOCKED`, `NOT_YOUR_CH
 | `RATE_LIMIT_BURST` / `RATE_LIMIT_PER_SECOND` | `30` / `15` | Limitation de débit par socket |
 | `STATIC_DIR` | — | Dossier du client compilé à servir (production) |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error`, `silent` |
+| `BOT_DELAY_MIN_MS` / `BOT_DELAY_MAX_MS` | `1200` / `3500` | Temps de « réflexion » des bots (la moitié pour un choix de cible) |
 
 ## 6. Tests
 
@@ -132,3 +135,14 @@ Socket.IO (`test/harness.ts`). Les tests couvrent :
 - les minuteurs réels ;
 - la déconnexion, la reprise, la réservation expirée (en lobby et en partie) et le second appareil ;
 - une partie complète entre deux clients.
+
+## 7. Bots
+
+Un bot est un joueur **sans connexion**, piloté par son salon (`Room.bots`) :
+- ajouté par l'hôte dans le lobby (`game:add-bot`) ; il est prêt d'office et reçoit un nom de sorcier original ;
+- après chaque changement d'état, le salon regarde si un bot doit agir (sort à préparer, choix à faire) et
+  programme sa décision après un délai aléatoire « humain » ;
+- la décision (`botDecide` du moteur) passe par la **même file** et la **même validation** que les actions humaines.
+  Une action refusée est journalisée (`warn`) et le bot laisse le minuteur faire ;
+- en cas de revanche, les bots suivent la table avec le même niveau ;
+- une partie sans aucun humain est supprimée : les bots ne jouent jamais seuls.

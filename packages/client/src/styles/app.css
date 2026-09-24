@@ -1345,3 +1345,81 @@ kbd {
     display: none;
   }
 }
+
+/* ----- Bots ------------------------------------------------------------------ */
+
+.home-solo {
+  border-color: var(--gold);
+}
+.home-solo h2 {
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+}
+.solo-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0 12px;
+  align-items: end;
+}
+.solo-form .btn {
+  margin-bottom: 12px;
+}
+.add-bot {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.add-bot select {
+  flex: 1;
+}
+
+/* ----- Illustrations des cartes & grimoire ------------------------------------ */
+
+.card-art {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  background: #1c1529;
+}
+.rune-art {
+  aspect-ratio: 16 / 10;
+  border: 1px solid color-mix(in srgb, var(--c1) 55%, transparent);
+  box-shadow: inset 0 0 12px rgb(0 0 0 / 0.5);
+}
+.rune-md .rune-art {
+  margin: 2px 0;
+}
+.rune-md {
+  min-height: 250px;
+}
+.rune-sm .rune-art {
+  aspect-ratio: 16 / 9;
+}
+.replay-card .rune-sm .rune-text {
+  display: block;
+}
+.grimoire {
+  width: min(1100px, 100%);
+}
+.grimoire-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.grimoire-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.grimoire-grid .rune-md {
+  width: auto;
+}
+@media (max-width: 520px) {
+  .rune-md {
+    min-height: 220px;
+  }
+  .grimoire-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}

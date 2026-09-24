@@ -23,6 +23,9 @@ export const C2S = {
   SYNC: "game:sync",
   /** Après la fin de partie : crée (ou rejoint) la partie de revanche. */
   REMATCH: "game:rematch",
+  /** Lobby, hôte uniquement : ajouter / retirer un bot. */
+  ADD_BOT: "game:add-bot",
+  REMOVE_BOT: "game:remove-bot",
 } as const;
 
 /** Événements émis par le serveur. */
@@ -33,6 +36,15 @@ export const S2C = {
 } as const;
 
 export type GameMode = "standard" | "quick";
+export type BotLevelName = "facile" | "normal" | "difficile";
+
+export interface AddBotRequest {
+  level: BotLevelName;
+}
+
+export interface RemoveBotRequest {
+  playerId: string;
+}
 
 export interface CreateGameRequest {
   name: string;

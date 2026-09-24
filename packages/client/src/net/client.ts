@@ -7,6 +7,7 @@ import {
   C2S,
   S2C,
   type Ack,
+  type BotLevelName,
   type CreateGameRequest,
   type KickedMessage,
   type RematchOfferMessage,
@@ -205,6 +206,26 @@ export class GameClient {
     if (action.type === "PLACE_RUNE" || action.type === "REMOVE_RUNE") play("place");
     else if (action.type === "LOCK_SPELL") play("cast");
     return true;
+  }
+
+  /** Ajoute un bot au lobby (hôte uniquement). */
+  async addBot(level: BotLevelName): Promise<boolean> {
+    const ack = await this.request(C2S.ADD_BOT, { level });
+    if (!ack.ok) return this.fail(ack.reason, ack.message);
+    return true;
+  }
+
+  async removeBot(playerId: string): Promise<boolean> {
+    const ack = await this.request(C2S.REMOVE_BOT, { playerId });
+    if (!ack.ok) return this.fail(ack.reason, ack.message);
+    return true;
+  }
+
+  /** Partie solo : crée la partie, ajoute les bots et la lance immédiatement. */
+  async solo(req: CreateGameRequest, bots: number, level: BotLevelName): Promise<boolean> {
+    if (!(await this.create({ ...req, maxPlayers: Math.max(2, bots + 1) }))) return false;
+    for (let i = 0; i < bots; i++) if (!(await this.addBot(level))) return false;
+    return this.act({ type: "START_GAME" });
   }
 
   /** Lance la revanche (ou rejoint celle proposée) avec les mêmes réglages. */

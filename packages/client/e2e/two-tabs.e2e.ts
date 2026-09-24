@@ -29,6 +29,7 @@ beforeAll(async () => {
     logLevel: "silent",
     staticDir: DIST,
     seatReservationMs: 60_000,
+    botDelayMs: [50, 150],
     gameOverrides: { planningMs: 30_000, choiceMs: 10_000 },
   });
   base = `http://127.0.0.1:${await server.listen()}`;
@@ -80,7 +81,7 @@ describe("deux onglets", () => {
     // 1. A crée une partie (mode rapide).
     await a.goto(base);
     await a.getByLabel("Ton pseudo de sorcier").fill("Alex");
-    await a.getByLabel(/Rapide/).check();
+    await a.getByRole("radio", { name: /Rapide/ }).check();
     await a.getByRole("button", { name: "Créer la partie" }).click();
     const code = (await a.locator(".code").innerText()).trim();
     expect(code).toMatch(/^[A-Z0-9]{6}$/);
@@ -181,6 +182,34 @@ describe("deux onglets", () => {
     await a.locator(".table-spell").first().waitFor({ timeout: 20_000 });
     await context.close();
   }, 60_000);
+
+  it("partie solo contre 3 bots jusqu'à la victoire, illustrations et grimoire", async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 860 }, reducedMotion: "reduce" });
+    const a = await context.newPage();
+    await a.goto(base);
+    // Grimoire : plus de 100 cartes, toutes illustrées.
+    await a.getByRole("button", { name: /Grimoire/ }).click();
+    expect(await a.locator(".grimoire-title, .modal-title").first().innerText()).toMatch(/Grimoire — (\d{3}) cartes/);
+    const runes = await a.locator(".grimoire .rune").count();
+    expect(runes).toBeGreaterThan(80);
+    expect(await a.locator(".grimoire .rune .card-art").count()).toBe(runes);
+    await a.keyboard.press("Escape");
+    // Partie solo.
+    await a.getByLabel("Ton pseudo de sorcier").fill("Solo");
+    await a.getByLabel("Mode").selectOption("quick");
+    await a.getByRole("button", { name: /Jouer maintenant/ }).click();
+    await expect.poll(() => a.locator(".opponents .player").count()).toBe(3);
+    expect(await a.locator(".opponents .player-name", { hasText: "🤖" }).count()).toBe(3);
+    for (let i = 0; i < 80; i++) {
+      if (await a.locator(".gameover").isVisible().catch(() => false)) break;
+      await answerChoices(a);
+      await playTurn(a);
+      await a.waitForTimeout(150);
+    }
+    await a.locator(".gameover").waitFor({ timeout: 20_000 });
+    await shot(a, "8-solo-over");
+    await context.close();
+  }, 120_000);
 
   it("affichage mobile : la table tient dans un écran de téléphone", async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });

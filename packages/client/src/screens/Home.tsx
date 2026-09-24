@@ -1,6 +1,7 @@
 import { NAME_MAX_LENGTH } from "@baston/engine";
-import type { GameMode } from "@baston/shared";
+import type { BotLevelName, GameMode } from "@baston/shared";
 import { useState } from "react";
+import { Grimoire } from "../components/Grimoire";
 import { RulesDialog } from "../components/RulesDialog";
 import { useGameClient } from "../hooks/useGame";
 
@@ -23,6 +24,9 @@ export function Home({ inviteCode }: { inviteCode: string | null }) {
   const [maxPlayers, setMaxPlayers] = useState(6);
   const [busy, setBusy] = useState(false);
   const [rules, setRules] = useState(false);
+  const [grimoire, setGrimoire] = useState(false);
+  const [bots, setBots] = useState(3);
+  const [level, setLevel] = useState<BotLevelName>("normal");
 
   const cleanName = name.trim();
   const remember = () => {
@@ -48,9 +52,14 @@ export function Home({ inviteCode }: { inviteCode: string | null }) {
           <span aria-hidden>✦</span> Baston de Sorciers <span aria-hidden>✦</span>
         </h1>
         <p>Assemble des sorts en secret. Frappe le premier. Sois le dernier debout.</p>
-        <button type="button" className="btn btn-ghost" onClick={() => setRules(true)}>
-          📜 Comment jouer
-        </button>
+        <div className="row">
+          <button type="button" className="btn btn-ghost" onClick={() => setRules(true)}>
+            📜 Comment jouer
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={() => setGrimoire(true)}>
+            📖 Grimoire des cartes
+          </button>
+        </div>
       </header>
 
       <section className="home-card">
@@ -65,6 +74,46 @@ export function Home({ inviteCode }: { inviteCode: string | null }) {
             autoFocus={!inviteCode}
           />
         </label>
+      </section>
+
+      <section className="home-card home-solo" aria-labelledby="solo-title">
+        <h2 id="solo-title">🤖 Jouer contre des bots</h2>
+        <form
+          className="solo-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void run(() => client.solo({ name: cleanName, mode }, bots, level));
+          }}
+        >
+          <label className="field">
+            <span>Adversaires</span>
+            <select value={bots} onChange={(e) => setBots(Number(e.target.value))}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n} bot{n > 1 ? "s" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Niveau</span>
+            <select value={level} onChange={(e) => setLevel(e.target.value as BotLevelName)}>
+              <option value="facile">Facile</option>
+              <option value="normal">Normal</option>
+              <option value="difficile">Difficile</option>
+            </select>
+          </label>
+          <label className="field">
+            <span>Mode</span>
+            <select value={mode} onChange={(e) => setMode(e.target.value as GameMode)}>
+              <option value="standard">Standard</option>
+              <option value="quick">Rapide</option>
+            </select>
+          </label>
+          <button type="submit" className="btn btn-primary" disabled={busy}>
+            ⚔ Jouer maintenant
+          </button>
+        </form>
       </section>
 
       <div className="home-grid">
@@ -128,6 +177,7 @@ export function Home({ inviteCode }: { inviteCode: string | null }) {
         </section>
       </div>
       {rules && <RulesDialog onClose={() => setRules(false)} />}
+      {grimoire && <Grimoire onClose={() => setGrimoire(false)} />}
     </main>
   );
 }

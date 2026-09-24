@@ -1,4 +1,5 @@
 import { getCardDef } from "@baston/engine";
+import { CardArt } from "../art/CardArt";
 import { SCHOOL_ICON, SCHOOL_LABEL, SLOT_LABEL } from "../game/helpers";
 
 interface Props {
@@ -17,24 +18,30 @@ interface Props {
 export function RuneCard({ defId, size = "md", selected, disabled, onClick, actionLabel, shortcut }: Props) {
   const def = getCardDef(defId);
   const schools = def.schools;
+  const special = def.kind === "RELIC" ? "#f4b942" : def.kind === "GRUDGE" ? "#7fe3d4" : null;
   const style = {
-    "--c1": schools[0] ? `var(--school-${schools[0].toLowerCase()})` : "var(--unstable)",
-    "--c2": schools[1] ? `var(--school-${schools[1].toLowerCase()})` : schools[0] ? `var(--school-${schools[0].toLowerCase()})` : "var(--unstable-2)",
+    "--c1": special ?? (schools[0] ? `var(--school-${schools[0].toLowerCase()})` : "var(--unstable)"),
+    "--c2": special ?? (schools[1] ? `var(--school-${schools[1].toLowerCase()})` : schools[0] ? `var(--school-${schools[0].toLowerCase()})` : "var(--unstable-2)"),
   } as React.CSSProperties;
+  const kindLabel =
+    def.kind === "RELIC" ? (def.eternal ? "Relique éternelle" : "Relique") : def.kind === "GRUDGE" ? "Rancune" : def.unstable ? "Libre" : SLOT_LABEL[def.slot!];
   const content = (
     <>
       <span className="rune-top">
-        <span className="rune-slot">{def.unstable ? "Libre" : SLOT_LABEL[def.slot!]}</span>
+        <span className="rune-slot">{kindLabel}</span>
         {def.initiative !== undefined && (
           <span className="rune-init" title="Initiative">
             ⚡{def.initiative}
           </span>
         )}
       </span>
+      {size !== "xs" && <CardArt defId={defId} className="rune-art" />}
       <span className="rune-name">{def.name}</span>
-      <span className="rune-schools" aria-label={schools.map((s) => SCHOOL_LABEL[s]).join(" et ") || "Instable"}>
-        {schools.length ? schools.map((s) => SCHOOL_ICON[s]).join("") : "❓"}
-      </span>
+      {def.kind === "RUNE" && (
+        <span className="rune-schools" aria-label={schools.map((s) => SCHOOL_LABEL[s]).join(" et ") || "Instable"}>
+          {schools.length ? schools.map((s) => SCHOOL_ICON[s]).join("") : "❓"}
+        </span>
+      )}
       {size !== "xs" && <span className="rune-text">{def.text}</span>}
       {shortcut && (
         <kbd className="rune-key" aria-hidden>

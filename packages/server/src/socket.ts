@@ -10,6 +10,8 @@
 import {
   C2S,
   actionRequestSchema,
+  addBotSchema,
+  removeBotSchema,
   createGameSchema,
   joinGameSchema,
   resumeSchema,
@@ -119,6 +121,20 @@ export function registerSocketHandlers(io: Server, registry: GameRegistry, confi
       return { ok: true, data: undefined };
     });
 
+    on(C2S.ADD_BOT, addBotSchema, async (req) => {
+      const cur = current();
+      if (!cur) return { ok: false, reason: "NOT_IN_A_GAME" };
+      if (cur.room.state.hostId !== cur.playerId) return { ok: false, reason: "NOT_HOST" };
+      return cur.room.addBot(req.level);
+    });
+
+    on(C2S.REMOVE_BOT, removeBotSchema, async (req) => {
+      const cur = current();
+      if (!cur) return { ok: false, reason: "NOT_IN_A_GAME" };
+      if (cur.room.state.hostId !== cur.playerId) return { ok: false, reason: "NOT_HOST" };
+      return cur.room.removeBot(req.playerId);
+    });
+
     on(C2S.REMATCH, null, async () => {
       const cur = current();
       if (!cur) return { ok: false, reason: "NOT_IN_A_GAME" };
@@ -131,6 +147,8 @@ export function registerSocketHandlers(io: Server, registry: GameRegistry, confi
         next = registry.createWithConfig(old.state.config, "rematch") ?? undefined;
         if (!next) return { ok: false, reason: "SERVER_FULL" };
         old.rematchId = next.id;
+        // Les bots suivent : même table, même niveau.
+        for (const level of old.botLevels()) await next.addBot(level);
       }
       const joined = await next.join(name);
       if (!joined.ok) return joined;

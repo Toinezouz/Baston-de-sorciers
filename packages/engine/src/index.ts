@@ -18,6 +18,7 @@ export {
 } from "./views";
 export { describeEvent, type NameResolver } from "./format";
 export { botActions } from "./bot";
+export { botDecide, planSpell, isSelfHarm, isDefensive, BOT_LEVELS, BOT_NAMES, type BotLevel, type SpellStrategy } from "./ai";
 export { seedFromString } from "./rng";
 export {
   getCardDef,

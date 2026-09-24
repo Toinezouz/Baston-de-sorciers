@@ -29,6 +29,8 @@ export interface ServerConfig {
   /** Surcharges de configuration des parties (tests, réglages de serveur). */
   gameOverrides: Partial<GameConfig>;
   logLevel: "debug" | "info" | "warn" | "error" | "silent";
+  /** Temps de « réflexion » des bots [min, max] en ms (pour paraître humains). */
+  botDelayMs: [number, number];
 }
 
 function int(v: string | undefined, fallback: number): number {
@@ -52,6 +54,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     rateLimit: { burst: int(env.RATE_LIMIT_BURST, 30), perSecond: int(env.RATE_LIMIT_PER_SECOND, 15) },
     staticDir: env.STATIC_DIR?.trim() || (existsSync(DEFAULT_STATIC_DIR) ? DEFAULT_STATIC_DIR : null),
     gameOverrides: overrides,
+    botDelayMs: [int(env.BOT_DELAY_MIN_MS, 1200), int(env.BOT_DELAY_MAX_MS, 3500)],
     logLevel: (["debug", "info", "warn", "error", "silent"].includes(env.LOG_LEVEL ?? "") ? env.LOG_LEVEL : "info") as ServerConfig["logLevel"],
   };
 }

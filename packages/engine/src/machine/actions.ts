@@ -45,7 +45,8 @@ function removeFromLobby(state: GameState, pid: PlayerId): void {
   state.seatOrder.forEach((id, i) => (getPlayer(state, id).seat = i));
   emit(state, { type: "PLAYER_LEFT", targetId: pid, data: {} });
   if (state.hostId === pid) {
-    state.hostId = state.seatOrder[0] ?? null;
+    // L'hôte est toujours un humain (les bots ne lancent pas la partie).
+    state.hostId = state.seatOrder.find((id) => !getPlayer(state, id).isBot) ?? null;
     if (state.hostId) emit(state, { type: "HOST_CHANGED", targetId: state.hostId, data: {} });
   }
 }
@@ -186,7 +187,7 @@ export function applySystemAction(state: GameState, action: SystemAction): void 
         stats: { damageDealt: 0, kills: 0, roundsWon: 0 },
       };
       state.seatOrder.push(action.playerId);
-      if (!state.hostId) state.hostId = action.playerId;
+      if (!state.hostId && !action.bot) state.hostId = action.playerId;
       emit(state, { type: "PLAYER_JOINED", targetId: action.playerId, data: { name, seat: state.seatOrder.length - 1 } });
       return;
     }
