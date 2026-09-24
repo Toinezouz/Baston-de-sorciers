@@ -2,7 +2,12 @@
  * Configuration du serveur, lue depuis les variables d'environnement.
  * Voir README.md § Variables d'environnement.
  */
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import type { GameConfig } from "@baston/engine";
+
+/** Client compilé du monorepo (npm run build), servi par défaut s'il existe. */
+const DEFAULT_STATIC_DIR = fileURLToPath(new URL("../../client/dist", import.meta.url));
 
 export interface ServerConfig {
   port: number;
@@ -45,7 +50,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     idleGameTtlMs: int(env.IDLE_GAME_TTL_MS, 2 * 60 * 60_000),
     maxGames: int(env.MAX_GAMES, 500),
     rateLimit: { burst: int(env.RATE_LIMIT_BURST, 30), perSecond: int(env.RATE_LIMIT_PER_SECOND, 15) },
-    staticDir: env.STATIC_DIR?.trim() || null,
+    staticDir: env.STATIC_DIR?.trim() || (existsSync(DEFAULT_STATIC_DIR) ? DEFAULT_STATIC_DIR : null),
     gameOverrides: overrides,
     logLevel: (["debug", "info", "warn", "error", "silent"].includes(env.LOG_LEVEL ?? "") ? env.LOG_LEVEL : "info") as ServerConfig["logLevel"],
   };
