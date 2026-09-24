@@ -11,6 +11,7 @@
     "dev:server": "tsx watch packages/server/src/index.ts",
     "dev:client": "npm run dev -w @baston/client",
     "build": "npm run build -w @baston/client",
+    "prestart": "npm run build",
     "start": "tsx packages/server/src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",

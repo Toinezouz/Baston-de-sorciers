@@ -28,6 +28,8 @@ export interface ClientState {
   kicked: "SESSION_REPLACED" | "GAME_CLOSED" | null;
   /** Revanche proposée par un autre joueur de la partie terminée. */
   rematchOffer: { gameId: string; by: string } | null;
+  /** Vrai si le serveur annonce un protocole ou un catalogue différent de ce client (client périmé). */
+  outdated: boolean;
 }
 
 export const MAX_LOG = 400;
@@ -42,6 +44,7 @@ export const initialState: ClientState = {
   toasts: [],
   kicked: null,
   rematchOffer: null,
+  outdated: false,
 };
 
 /**

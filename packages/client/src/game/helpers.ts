@@ -1,15 +1,6 @@
+import { cardDef, summonDef } from "./cards";
 /** Sélecteurs et utilitaires d'affichage (purs). */
-import {
-  RUNE_SLOTS,
-  SCHOOLS,
-  getCardDef,
-  getSummonDef,
-  type GameEvent,
-  type PlayerView,
-  type PublicPlayerView,
-  type RuneSlot,
-  type School,
-} from "@baston/engine";
+import { RUNE_SLOTS, SCHOOLS, type GameEvent, type PlayerView, type PublicPlayerView, type RuneSlot, type School } from "@baston/engine";
 
 export const SCHOOL_LABEL: Record<School, string> = {
   BRAISE: "Braise",
@@ -53,25 +44,25 @@ export function nameResolver(view: PlayerView, log: GameEvent[]): (id: string | 
   for (const e of log) {
     if (e.type === "SUMMON_ENTERED" && e.targetId) {
       const owner = view.public.players.find((p) => p.id === e.sourceId)?.name ?? "?";
-      names.set(e.targetId, `${getSummonDef(String(e.data.defId)).name} de ${owner}`);
+      names.set(e.targetId, `${summonDef(String(e.data.defId)).name} de ${owner}`);
     }
   }
   return (id) => (id ? names.get(id) ?? "?" : "?");
 }
 
 export function cardSchools(defId: string): School[] {
-  return getCardDef(defId).schools;
+  return cardDef(defId).schools;
 }
 
 /** Tri de la main : par emplacement, puis école, puis nom. */
 export function sortHand<T extends { defId: string }>(cards: T[]): T[] {
   const slotRank = (d: string) => {
-    const def = getCardDef(d);
+    const def = cardDef(d);
     return def.unstable ? 3 : RUNE_SLOTS.indexOf(def.slot!);
   };
-  const schoolRank = (d: string) => SCHOOLS.indexOf(getCardDef(d).schools[0] ?? "BRAISE");
+  const schoolRank = (d: string) => SCHOOLS.indexOf(cardDef(d).schools[0] ?? "BRAISE");
   return [...cards].sort(
-    (a, b) => slotRank(a.defId) - slotRank(b.defId) || schoolRank(a.defId) - schoolRank(b.defId) || getCardDef(a.defId).name.localeCompare(getCardDef(b.defId).name),
+    (a, b) => slotRank(a.defId) - slotRank(b.defId) || schoolRank(a.defId) - schoolRank(b.defId) || cardDef(a.defId).name.localeCompare(cardDef(b.defId).name),
   );
 }
 
@@ -83,7 +74,7 @@ export function powerPreview(defIds: string[], focusDice: readonly number[] = [0
   const bonus = focusDice[defIds.length - 1] ?? 0;
   const out: { school: School; dice: number }[] = [];
   for (const school of SCHOOLS) {
-    const n = defIds.filter((d) => getCardDef(d).schools.includes(school)).length;
+    const n = defIds.filter((d) => cardDef(d).schools.includes(school)).length;
     if (n > 0) out.push({ school, dice: n + bonus });
   }
   return out;

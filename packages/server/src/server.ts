@@ -10,6 +10,7 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer, type IncomingMessage, type Server as HttpServer, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { extname, join, normalize, resolve, sep } from "node:path";
+import { catalogVersion } from "@baston/engine";
 import { PROTOCOL_VERSION, gameIdSchema } from "@baston/shared";
 import { Server } from "socket.io";
 import type { ServerConfig } from "./config";
@@ -68,7 +69,7 @@ export function createGameServer(config: ServerConfig): GameServer {
   const http = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://x");
     if (req.method !== "GET" && req.method !== "HEAD") return json(res, 405, { error: "METHOD_NOT_ALLOWED" });
-    if (url.pathname === "/health") return json(res, 200, { ok: true, games: registry.size, protocol: PROTOCOL_VERSION });
+    if (url.pathname === "/health") return json(res, 200, { ok: true, games: registry.size, protocol: PROTOCOL_VERSION, catalog: catalogVersion() });
     const m = /^\/api\/games\/([^/]+)$/.exec(url.pathname);
     if (m) {
       const code = gameIdSchema.safeParse(decodeURIComponent(m[1]!));

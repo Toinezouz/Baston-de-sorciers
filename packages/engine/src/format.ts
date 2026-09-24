@@ -19,6 +19,13 @@ function statusName(id: unknown): string {
     return String(id);
   }
 }
+function summonName(id: unknown): string {
+  try {
+    return getSummonDef(String(id)).name;
+  } catch {
+    return "une invocation";
+  }
+}
 function plural(n: number, one: string, many: string): string {
   return `${n} ${n > 1 ? many : one}`;
 }
@@ -104,9 +111,9 @@ export function describeEvent(ev: GameEvent, name: NameResolver): string | null 
     case "RELIC_STOLEN":
       return `${src} dérobe ${cardName(d.defId)} à ${tgt}.`;
     case "SUMMON_ENTERED":
-      return `${src} invoque ${getSummonDef(String(d.defId)).name}.`;
+      return `${src} invoque ${summonName(d.defId)}.`;
     case "SUMMON_DIED":
-      return `${getSummonDef(String(d.defId)).name} disparaît.`;
+      return `${summonName(d.defId)} disparaît.`;
     case "GRUDGE_DRAWN":
       return `${tgt} revient d'outre-tombe avec ${cardName(d.defId)}.`;
     case "TRIGGER_FIRED":

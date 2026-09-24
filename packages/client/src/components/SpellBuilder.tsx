@@ -1,4 +1,5 @@
-import { RUNE_SLOTS, getCardDef, type CardView, type RuneSlot } from "@baston/engine";
+import { cardDef } from "../game/cards";
+import { RUNE_SLOTS, type CardView, type RuneSlot } from "@baston/engine";
 import { powerPreview, SCHOOL_ICON, SCHOOL_LABEL, SLOT_HINT, SLOT_LABEL } from "../game/helpers";
 import { RuneCard } from "./RuneCard";
 
@@ -21,7 +22,7 @@ export function SpellBuilder({ spell, editable, locked, pendingSlotPick, onSlotC
   const defIds = RUNE_SLOTS.map((s) => spell[s]?.defId).filter((d): d is string => !!d);
   const preview = powerPreview(defIds, focusDice);
   const focus = focusDice[defIds.length - 1] ?? 0;
-  const frappe = spell.FRAPPE ? getCardDef(spell.FRAPPE.defId).initiative ?? 0 : 0;
+  const frappe = spell.FRAPPE ? cardDef(spell.FRAPPE.defId).initiative ?? 0 : 0;
   return (
     <section className={`spell${locked ? " is-locked" : ""}`} aria-label="Mon sort">
       <div className="spell-slots">

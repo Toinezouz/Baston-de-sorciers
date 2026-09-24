@@ -108,3 +108,18 @@ Accessibilité :
     pour la Frappe, hexagone pour une relique, stèle pour une rancune.
 - **Ajouter une carte** : ajoutez aussi son entrée dans `cardArt.ts`. Le test `packages/client/test/art.test.ts`
   échoue si une carte n'a pas d'illustration, si un emblème n'existe pas ou si deux illustrations sont identiques.
+
+## 8. Robustesse de l'affichage
+
+Cette section fait suite à un incident réel : **écran blanc en rejoignant une partie**. Un client compilé avant
+l'extension de cartes était servi par un serveur à jour. La première carte inconnue faisait planter React, qui démontait toute la page.
+
+- **Contrôle de version** : à la connexion, le serveur envoie `game:hello` avec l'empreinte de son catalogue. En cas
+  de différence, un bandeau invite à recharger.
+- **Catalogue tolérant** (`game/cards.ts`) : `cardDef`, `statusDef` et `summonDef` renvoient un élément « inconnu »
+  au lieu de lever une erreur. Le moteur (`describeEvent`) tolère aussi les invocations inconnues.
+- **Filet de sécurité** (`components/ErrorBoundary.tsx`) : toute erreur d'affichage montre un écran d'erreur avec
+  **Recharger** (reprise de la partie) et **Réinitialiser**, jamais une page blanche.
+- `npm start` recompile le client avant de démarrer (`prestart`), ce qui empêche de servir un client périmé.
+- Test de non-régression : `packages/client/e2e/outdated.e2e.ts` (serveur doté d'une carte que le client ignore).
+

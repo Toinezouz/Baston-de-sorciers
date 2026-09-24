@@ -1,4 +1,5 @@
-import { getCardDef } from "@baston/engine";
+import { cardDef } from "../game/cards";
+
 import { CardArt } from "../art/CardArt";
 import { SCHOOL_ICON, SCHOOL_LABEL, SLOT_LABEL } from "../game/helpers";
 
@@ -16,7 +17,7 @@ interface Props {
 
 /** Carte de rune : couleur d'école, emplacement, initiative, nom et texte de règles. */
 export function RuneCard({ defId, size = "md", selected, disabled, onClick, actionLabel, shortcut }: Props) {
-  const def = getCardDef(defId);
+  const def = cardDef(defId);
   const schools = def.schools;
   const special = def.kind === "RELIC" ? "#f4b942" : def.kind === "GRUDGE" ? "#7fe3d4" : null;
   const style = {

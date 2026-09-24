@@ -1,4 +1,5 @@
-import { getCardDef, type CardView } from "@baston/engine";
+import { cardDef } from "../game/cards";
+import { type CardView } from "@baston/engine";
 import { sortHand } from "../game/helpers";
 import { RuneCard } from "./RuneCard";
 
@@ -22,7 +23,7 @@ export function Hand({ cards, playable, selectedId, onPlay }: Props) {
           selected={selectedId === c.id}
           disabled={!playable}
           onClick={() => onPlay(c)}
-          actionLabel={getCardDef(c.defId).unstable ? "Choisir un emplacement pour" : "Ajouter au sort"}
+          actionLabel={cardDef(c.defId).unstable ? "Choisir un emplacement pour" : "Ajouter au sort"}
         />
       ))}
     </section>

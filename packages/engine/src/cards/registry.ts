@@ -47,6 +47,24 @@ export function hasCardDef(id: string): boolean {
   return cards.has(id);
 }
 
+/**
+ * Empreinte du contenu (cartes, statuts, invocations et leurs textes).
+ * Le serveur l'annonce aux clients : un client dont l'empreinte diffère n'est pas à jour.
+ */
+export function catalogVersion(): string {
+  const parts = [
+    ...[...cards.values()].filter((c) => c.copies > 0).map((c) => `${c.id}:${c.copies}:${c.text}`),
+    ...[...statuses.keys()].filter((id) => !id.startsWith("test-")),
+    ...summons.keys(),
+  ].sort();
+  let h = 2166136261;
+  for (const ch of parts.join("|")) {
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+
 export function allCardDefs(): CardDefinition[] {
   return [...cards.values()];
 }

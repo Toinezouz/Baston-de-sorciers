@@ -62,6 +62,7 @@ Un message sans fonction d'ack est ignoré.
 | `game:state` | `StateMessage` : `{ gameId, version, full, view: { public, private }, events, deadlines, serverTime }` |
 | `game:kicked` | `{ reason: "SESSION_REPLACED" \| "GAME_CLOSED" }` |
 | `game:rematch-offer` | `{ gameId, by }` : un joueur a lancé une revanche |
+| `game:hello` | `{ protocol, catalog }` : envoyé à la connexion. `catalog` est l'empreinte du contenu (`catalogVersion()`) ; un client dont l'empreinte diffère affiche « Recharger » |
 
 ### Revanche
 Après `GAME_OVER`, le premier `game:rematch` crée une partie **avec la même configuration**. Son auteur en

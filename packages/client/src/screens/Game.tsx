@@ -1,4 +1,5 @@
-import { getCardDef, type CardView, type PlayerView, type RuneSlot } from "@baston/engine";
+import { cardDef } from "../game/cards";
+import { type CardView, type PlayerView, type RuneSlot } from "@baston/engine";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { isMuted, play as playSfx, setMuted } from "../audio";
 import { MuteButton } from "../components/MuteButton";
@@ -43,7 +44,11 @@ export function Game({ view }: { view: PlayerView }) {
 
   const play = useCallback(
     (card: CardView) => {
-      const def = getCardDef(card.defId);
+      const def = cardDef(card.defId);
+      if (!def.slot && !def.unstable) {
+        client.toast("Carte inconnue de cette version : rechargez la page.");
+        return;
+      }
       if (def.unstable) {
         setUnstablePick((cur) => (cur === card.id ? null : card.id));
         return;

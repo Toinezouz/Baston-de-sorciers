@@ -1423,3 +1423,40 @@ kbd {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
+
+/* ----- Robustesse : version périmée, erreur d'affichage ------------------------ */
+
+.outdated-banner {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: #7a2d1a;
+  color: #fff;
+  font-weight: 600;
+}
+.crash {
+  max-width: 640px;
+  margin: 10vh auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+}
+.crash h1 {
+  color: var(--gold);
+}
+.crash ul {
+  text-align: left;
+}
+.crash pre {
+  white-space: pre-wrap;
+  text-align: left;
+  color: var(--muted);
+}

@@ -56,7 +56,7 @@ Ouvrez **http://localhost:5173** puis :
 ```bash
 npm run dev           # client (http://localhost:5173) + serveur (3001) avec rechargement automatique
 npm run build         # compile le client dans packages/client/dist
-npm start             # production : le serveur (3001) sert le client compilé et le jeu
+npm start             # production : recompile le client puis démarre le serveur (3001), qui sert le jeu
 npm test              # tests unitaires et d'intégration (moteur, serveur, client)
 npm run test:e2e      # build + tests de bout en bout dans Chromium (deux onglets)
 npm run test:coverage # couverture
@@ -65,6 +65,14 @@ npm run sim -- 200 4  # simule 200 parties à 4 bots (rythme)
 npm run balance -- 600 # compare des stratégies de bots (équilibrage, voir docs/06)
 npm run cards:doc     # régénère docs/02-cartes.md depuis le catalogue
 ```
+
+## Dépannage
+
+| Symptôme | Cause probable | Solution |
+|---|---|---|
+| Bandeau « Une nouvelle version du jeu est en service » | La page affichée est plus ancienne que le serveur (cache du navigateur, client non recompilé) | Cliquer **Recharger**. En production, `npm start` recompile désormais le client automatiquement |
+| Écran « Le grimoire a pris feu… » | Erreur d'affichage inattendue | **Recharger** reprend la partie ; **Réinitialiser** revient à l'accueil. Le détail technique est dans l'écran et dans la console du navigateur (F12) |
+| « Connexion perdue — reconnexion en cours » | Le serveur de jeu est arrêté ou injoignable | Vérifier que `npm run dev` (ou `npm start`) tourne toujours et que le port 3001 n'est pas occupé par un autre programme |
 
 ## Ajouter une carte ou un effet
 

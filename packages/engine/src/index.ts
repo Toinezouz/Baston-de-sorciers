@@ -24,6 +24,8 @@ export {
   getCardDef,
   getStatusDef,
   getSummonDef,
+  hasCardDef,
+  catalogVersion,
   allCardDefs,
   allStatusDefs,
   allSummonDefs,

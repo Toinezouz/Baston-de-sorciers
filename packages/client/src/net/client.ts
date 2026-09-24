@@ -5,16 +5,19 @@
 import type { PlayerAction } from "@baston/engine";
 import {
   C2S,
+  PROTOCOL_VERSION,
   S2C,
   type Ack,
   type BotLevelName,
   type CreateGameRequest,
+  type HelloMessage,
   type KickedMessage,
   type RematchOfferMessage,
   type SessionInfo,
   type StateMessage,
 } from "@baston/shared";
 import { io, type Socket } from "socket.io-client";
+import { catalogVersion } from "@baston/engine";
 import { play } from "../audio";
 import { rejectMessage } from "./messages";
 import { applyStateMessage, initialState, type ClientState, type Toast } from "./store";
@@ -108,6 +111,11 @@ export class GameClient {
     this.socket.on(S2C.STATE, (msg: StateMessage) => {
       this.state = applyStateMessage(this.state, msg, Date.now());
       this.emit();
+    });
+    this.socket.on(S2C.HELLO, (msg: HelloMessage) => {
+      const outdated = msg.protocol !== PROTOCOL_VERSION || msg.catalog !== catalogVersion();
+      if (outdated) console.warn("[baston] client périmé", { serveur: msg, client: { protocol: PROTOCOL_VERSION, catalog: catalogVersion() } });
+      this.set({ outdated });
     });
     this.socket.on(S2C.REMATCH_OFFER, (msg: RematchOfferMessage) => {
       this.set({ rematchOffer: msg });

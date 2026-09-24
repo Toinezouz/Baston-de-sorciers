@@ -15,9 +15,13 @@ import {
   createGameSchema,
   joinGameSchema,
   resumeSchema,
+  PROTOCOL_VERSION,
+  S2C,
   type Ack,
+  type HelloMessage,
   type SessionInfo,
 } from "@baston/shared";
+import { catalogVersion } from "@baston/engine";
 import type { Server, Socket } from "socket.io";
 import type { ZodType } from "zod";
 import type { ServerConfig } from "./config";
@@ -38,8 +42,11 @@ function invalid(message: string): Ack<never> {
 }
 
 export function registerSocketHandlers(io: Server, registry: GameRegistry, config: ServerConfig, logger: Logger): void {
+  // Empreinte du contenu calculée au démarrage du serveur (contenu figé ensuite).
+  const CATALOG = catalogVersion();
   io.on("connection", (socket: Socket) => {
     socket.data.session = null as SocketSession | null;
+    socket.emit(S2C.HELLO, { protocol: PROTOCOL_VERSION, catalog: CATALOG } satisfies HelloMessage);
     const bucket = new TokenBucket(config.rateLimit.burst, config.rateLimit.perSecond);
 
     /** Enveloppe commune : ack obligatoire, débit, validation, erreurs. */

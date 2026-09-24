@@ -14,7 +14,7 @@ function inviteFromUrl(): string | null {
 export function App() {
   const client = useGameClient();
   const state = useClientState();
-  const { session, game, status, toasts, kicked } = state;
+  const { session, game, status, toasts, kicked, outdated } = state;
   const view = game && session && game.gameId === session.gameId ? game.view : null;
 
   // L'URL reflète la partie en cours (un rafraîchissement reprend la session).
@@ -36,6 +36,14 @@ export function App() {
   return (
     <>
       <ConnectionBanner status={status} />
+      {outdated && (
+        <div className="outdated-banner" role="alert">
+          ⚠ Une nouvelle version du jeu est en service : cette page n'est plus à jour.
+          <button type="button" className="btn btn-primary" onClick={() => location.reload()}>
+            Recharger
+          </button>
+        </div>
+      )}
       {screen}
       <Toasts toasts={toasts} onDismiss={(id) => client.dismissToast(id)} />
     </>

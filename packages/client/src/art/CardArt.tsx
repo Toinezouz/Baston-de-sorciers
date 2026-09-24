@@ -1,4 +1,5 @@
-import { getCardDef } from "@baston/engine";
+import { cardDef } from "../game/cards";
+
 import { memo, useId } from "react";
 import { artFor, hashString } from "./cardArt";
 import { EMBLEMS } from "./emblems";
@@ -30,7 +31,7 @@ function schoolColor(s: string | undefined): string {
  * emblème principal et emblème secondaire.
  */
 export const CardArt = memo(function CardArt({ defId, className }: { defId: string; className?: string }) {
-  const def = getCardDef(defId);
+  const def = cardDef(defId);
   const uid = useId().replace(/:/g, "");
   const [main, second] = artFor(defId, def.kind);
   const rand = mulberry(hashString(defId));

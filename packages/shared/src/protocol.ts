@@ -33,7 +33,15 @@ export const S2C = {
   STATE: "game:state",
   KICKED: "game:kicked",
   REMATCH_OFFER: "game:rematch-offer",
+  /** Envoyé à la connexion : versions du protocole et du contenu, pour détecter un client périmé. */
+  HELLO: "game:hello",
 } as const;
+
+export interface HelloMessage {
+  protocol: number;
+  /** Empreinte du catalogue de cartes du serveur (`catalogVersion()`). */
+  catalog: string;
+}
 
 export type GameMode = "standard" | "quick";
 export type BotLevelName = "facile" | "normal" | "difficile";
