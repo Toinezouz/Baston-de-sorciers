@@ -13,7 +13,7 @@
  */
 import { GUARDS } from "../constants";
 import { EngineError } from "../errors";
-import { killPlayer, finalizeDeaths } from "../resolution/deaths";
+import { clampHp, finalizeDeaths, killPlayer } from "../resolution/deaths";
 import { alivePlayerCount, drainQueue, enqueue, enqueueTriggersSince, makeTasks } from "../resolution/queue";
 import { pick, randInt, shuffleInPlace } from "../rng";
 import { emit } from "../state/events";
@@ -354,6 +354,7 @@ function cleanupTurn(state: GameState): void {
     p.spell = null;
   }
   state.turnState = null;
+  clampHp(state);
   for (const p of alivePlayers(state)) refillHand(state, p.id);
 }
 

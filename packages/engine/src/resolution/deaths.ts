@@ -3,12 +3,24 @@
  * Toutes les morts constatées au même moment sont simultanées [RULE D3] : elles sont
  * toutes marquées, puis leurs déclencheurs sont collectés ensemble, puis on nettoie.
  */
-import { cardDef, discardCard, getPlayer, seatOrderFrom } from "../state/helpers";
+import { cardDef, discardCard, getPlayer, maxHpOf, seatOrderFrom } from "../state/helpers";
 import { emit, type EmitMeta } from "../state/events";
 import type { GameState, PlayerId } from "../types";
 
+/**
+ * Si les PV max ont baissé (relique volée, statut expiré…), les PV actuels sont ramenés au maximum. [RULE D23]
+ */
+export function clampHp(state: GameState): void {
+  for (const p of Object.values(state.players)) {
+    if (!p.alive) continue;
+    const max = maxHpOf(state, p.id);
+    if (p.hp > max) p.hp = max;
+  }
+}
+
 /** Marque les morts (sorciers à 0 PV ou moins, invocations détruites). Retourne les sorciers morts. */
 export function markDeaths(state: GameState, startId: PlayerId | null, meta: EmitMeta): PlayerId[] {
+  clampHp(state);
   for (const s of Object.values(state.summons).sort((a, b) => a.enteredAt - b.enteredAt)) {
     if (s.hp > 0) continue;
     delete state.summons[s.id];

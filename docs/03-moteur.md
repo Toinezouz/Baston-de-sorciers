@@ -136,3 +136,41 @@ Elles s'ajoutent à D1–D11 de `01-analyse.md`. Chaque décision est repérée 
 | D20 | Un abandon n'est pas une mort au combat : aucun déclencheur, aucune rancune. Un choix en attente de l'abandonneur est résolu automatiquement. |
 | D21 | Un modificateur « consommable » (Surcharge) s'applique à **tout** l'effet (toutes les cibles d'un effet de zone) et n'est consommé qu'une fois. |
 | D22 | À l'expiration du temps de planification, une rune instable tirée au sort est placée dans un emplacement aléatoire. |
+| D23 | Si les PV max baissent (relique volée ou perdue, statut expiré), les PV actuels sont ramenés au nouveau maximum. Ce cas a été découvert par le fuzzing. |
+
+## 8. Tests
+
+```bash
+npm test                 # toute la suite (~10 s)
+npm run test:coverage    # couverture du moteur
+npx vitest run packages/engine/test/effects.test.ts   # un seul fichier
+```
+
+| Fichier | Contenu |
+|---|---|
+| `effects.test.ts` | Chaque opérateur, isolé : couches de modificateurs, soins, vol de vie, statuts (cumul, durée, dissipation), pioche/défausse/vol, reliques, invocations, combinateurs (jet, IF, FOR_EACH, REPEAT, ECHO, RANDOM, choix, effets retardés) |
+| `triggers.test.ts` | Ciblage (voisins, égalités, aléatoire, choix), déclencheurs (mort, élimination, fin de tour, invocations, maxPerTurn), ordre des chaînes, garde-fous (boucle, profondeur, budget) |
+| `rounds.test.ts` | Tours, minuteurs, verrouillage auto, manches, Couronnes, Rancunes, reliques éternelles, morts simultanées, mort subite, limites, fin de partie, abandon |
+| `concurrency.test.ts` | Immutabilité, versions, actions simultanées ou répétées, minuteur contre choix, valeurs forgées |
+| `views.test.ts` | Informations cachées : mains, sorts non révélés, pioche, graine, choix, événements privés |
+| `scenarios.test.ts` | Les 15 critères d'acceptation, rejeu complet (graine + actions ⇒ même état), partie scriptée |
+| `fuzz.test.ts` | Actions aléatoires ou malveillantes : jamais d'`ENGINE_ERROR`, invariants vérifiés après chaque action |
+| `content.test.ts` | Rejet des cartes invalides, conditions et montants dynamiques, lobby, abandon pendant un choix |
+| `mechanics.test.ts`, `smoke.test.ts` | Scénarios de base, catalogue, déterminisme, parties complètes entre bots |
+| `rng.test.ts` | Générateur seedé : reproductibilité, uniformité, mélange, pondération |
+
+Le harnais `test/helpers.ts` propose :
+- `createTestGame(n)` : partie démarrée avec n joueurs ;
+- `castSpell(s, pid, {AMORCE, TORSION, FRAPPE})` : pose et verrouille un sort ;
+- `runEffects(s, pid, effets)` : exécute des effets hors sort ;
+- `setHand`, `giveRelic`, `stackPile` : préparent une situation précise ;
+- `defineTestRune`, `defineTestRelic` : cartes de test à 0 exemplaire, absentes des vraies parties ;
+- `runBotGame` : fait jouer une partie complète par des bots ;
+- `assertCardConservation` : vérifie que chaque carte est à un seul endroit.
+
+Invariants vérifiés en continu par le fuzzing :
+- chaque carte se trouve à exactement un endroit ;
+- un sorcier vivant a des PV compris entre 1 et son maximum ;
+- un choix en attente existe si et seulement si la phase est `AWAITING_CHOICE` ;
+- un minuteur est armé pour chaque phase d'attente ;
+- la file de résolution est vide en dehors d'une suspension.

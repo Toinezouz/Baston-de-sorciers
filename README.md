@@ -14,7 +14,7 @@ Les sorts sont révélés, puis résolus du plus court au plus long. Le dernier 
 |---|---|---|
 | 1 | Analyse, règles, architecture — [`docs/01-analyse.md`](docs/01-analyse.md) | ✅ |
 | 2 | Moteur de règles pur (`packages/engine`) — [`docs/03-moteur.md`](docs/03-moteur.md) | ✅ |
-| 3 | Suite de tests complète du moteur | ⏳ (35 tests de fumée et de scénarios déjà en place) |
+| 3 | Suite de tests du moteur : 177 tests, 98,5 % des lignes couvertes, fuzzing | ✅ |
 | 4 | Serveur (lobby, WebSocket, reconnexion) | — |
 | 5–7 | Client React, intégration, finitions | — |
 
@@ -28,6 +28,7 @@ Les sorts sont révélés, puis résolus du plus court au plus long. Le dernier 
 ```bash
 npm install          # installe les dépendances de développement
 npm test             # lance tous les tests (Vitest)
+npm run test:coverage # couverture du moteur
 npm run typecheck    # vérification TypeScript stricte
 npm run sim -- 200 4 # simule 200 parties à 4 bots et affiche des statistiques de rythme et d'équilibrage
 npm run cards:doc    # régénère docs/02-cartes.md depuis le catalogue

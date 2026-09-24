@@ -7,8 +7,22 @@ import { botActions } from "../src/bot";
 import { createGame } from "../src/state/create";
 import { dispatch } from "../src/dispatch";
 import { seedFromString } from "../src/rng";
-import { RUNE_SLOTS, type DispatchInput, type GameConfig, type GameState, type PlayerAction, type PlayerId, type RuneSlot } from "../src/types";
-import { getCardDef } from "../src/cards/registry";
+import {
+  RUNE_SLOTS,
+  type CardDefinition,
+  type DispatchInput,
+  type EffectContext,
+  type EffectNode,
+  type GameConfig,
+  type GameState,
+  type PlayerAction,
+  type PileId,
+  type PlayerId,
+  type RuneSlot,
+  type School,
+} from "../src/types";
+import { getCardDef, hasCardDef, registerCard } from "../src/cards/registry";
+import { drainQueue, enqueue, makeTasks, type DrainResult } from "../src/resolution/queue";
 
 export function must(state: GameState, input: DispatchInput): GameState {
   const r = dispatch(state, input);
@@ -48,13 +62,74 @@ function detachCard(s: GameState, cardId: string): void {
   }
 }
 
-/** Trouve une instance libre d'une définition (pioche d'abord). */
+/**
+ * Crée une nouvelle instance d'une définition (hors de toute zone : l'appelant doit la placer).
+ * Sert pour les cartes de test à 0 exemplaire.
+ */
+export function mintCard(s: GameState, defId: string): string {
+  getCardDef(defId);
+  const id = `t${++s.counters.card}`;
+  s.cards[id] = { id, defId };
+  return id;
+}
+
+/** Trouve une instance libre d'une définition (piles d'abord), ou en crée une. */
 export function findInstance(s: GameState, defId: string, exclude: string[] = []): string {
   const all = Object.values(s.cards).filter((c) => c.defId === defId && !exclude.includes(c.id));
-  const inDraw = all.find((c) => Object.values(s.piles).some((p) => p.draw.includes(c.id) || p.discard.includes(c.id)));
-  const found = inDraw ?? all[0];
-  if (!found) throw new Error(`No instance of ${defId}`);
-  return found.id;
+  const inPile = all.find((c) => Object.values(s.piles).some((p) => p.draw.includes(c.id) || p.discard.includes(c.id)));
+  const inPlay = (id: string) =>
+    Object.values(s.players).some(
+      (p) => p.hand.includes(id) || p.relics.includes(id) || (p.spell && Object.values(p.spell.runes).includes(id)),
+    );
+  const found = inPile ?? all.find((c) => !inPlay(c.id));
+  return found ? found.id : mintCard(s, defId);
+}
+
+/**
+ * Déclare une rune de test (0 exemplaire : jamais présente dans une partie normale).
+ * Idempotent : un même identifiant n'est enregistré qu'une fois.
+ */
+export function defineTestRune(
+  id: string,
+  slot: RuneSlot,
+  effects: EffectNode[],
+  opts: { schools?: School[]; initiative?: number } = {},
+): string {
+  const defId = `test.${id}`;
+  if (!hasCardDef(defId)) {
+    const def: CardDefinition = {
+      id: defId,
+      kind: "RUNE",
+      slot,
+      schools: opts.schools ?? ["ETHER"],
+      copies: 0,
+      name: `Test ${id}`,
+      text: `Rune de test ${id}.`,
+      effects,
+      ...(slot === "FRAPPE" ? { initiative: opts.initiative ?? 0 } : {}),
+    };
+    registerCard(def);
+  }
+  return defId;
+}
+
+/** Déclare une relique de test. */
+export function defineTestRelic(id: string, passives: NonNullable<CardDefinition["passives"]>, eternal = false): string {
+  const defId = `test.relic.${id}`;
+  if (!hasCardDef(defId)) {
+    registerCard({ id: defId, kind: "RELIC", schools: [], copies: 0, name: `Relique ${id}`, text: `Relique de test ${id}.`, effects: [], passives, eternal });
+  }
+  return defId;
+}
+
+/**
+ * Exécute directement une liste d'effets pour `controllerId` (hors sort), sur l'état fourni (muté).
+ * Pour tester un opérateur isolément ; les choix éventuels laissent la file suspendue.
+ */
+export function runEffects(s: GameState, controllerId: PlayerId, nodes: EffectNode[], ctx: Partial<EffectContext> = {}): DrainResult {
+  s.guards.tasksThisDispatch = 0;
+  enqueue(s, makeTasks(s, nodes, { sourceId: controllerId, controllerId, label: "test", ...ctx }));
+  return drainQueue(s);
 }
 
 /**
@@ -82,16 +157,20 @@ export function giveRelic(s: GameState, playerId: PlayerId, defId: string): stri
   return id;
 }
 
-/** Place le dessus de la pioche du grimoire (pour contrôler les pioches). */
-export function stackGrimoire(s: GameState, defIds: string[]): string[] {
+/** Place des cartes connues sur le dessus d'une pile (pour contrôler les pioches). */
+export function stackPile(s: GameState, pileId: PileId, defIds: string[]): string[] {
   const ids: string[] = [];
   for (const defId of defIds) {
     const id = findInstance(s, defId, ids);
     detachCard(s, id);
     ids.push(id);
   }
-  s.piles.GRIMOIRE.draw.unshift(...ids);
+  s.piles[pileId].draw.unshift(...ids);
   return ids;
+}
+
+export function stackGrimoire(s: GameState, defIds: string[]): string[] {
+  return stackPile(s, "GRIMOIRE", defIds);
 }
 
 /** Pose un sort complet (runes = defIds par emplacement) et le verrouille. */
