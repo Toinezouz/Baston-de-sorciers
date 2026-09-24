@@ -1,6 +1,6 @@
 import { allCardDefs } from "@baston/engine";
 import { describe, expect, it } from "vitest";
-import { CARD_ART, hashString } from "../src/art/cardArt";
+import { CARD_ART, hashString } from "../src/art/artMap";
 import { EMBLEMS } from "../src/art/emblems";
 
 describe("illustrations", () => {

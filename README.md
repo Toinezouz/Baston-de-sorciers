@@ -77,7 +77,7 @@ npm run cards:doc     # régénère docs/02-cartes.md depuis le catalogue
 ## Ajouter une carte ou un effet
 
 - **Nouvelle carte** : ajoutez un objet de données dans `packages/engine/src/cards/` (runes, reliques, rancunes),
-  choisissez son illustration dans `packages/client/src/art/cardArt.ts`, lancez `npm test` (catalogue et
+  choisissez son illustration dans `packages/client/src/art/artMap.ts`, lancez `npm test` (catalogue et
   illustrations validés automatiquement) puis `npm run cards:doc`.
 - **Nouvel effet** : ajoutez une variante à `EffectNode` (`types.ts`) et son opérateur dans `effects/operators.ts`.
   Le compilateur signale tout oubli.

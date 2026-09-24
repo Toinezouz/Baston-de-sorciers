@@ -101,12 +101,12 @@ Accessibilité :
 - **Grimoire** (accueil) : les 122 cartes, illustrées, filtrables par type et par école.
 - **Illustrations** (`src/art/`) : chaque carte est une scène SVG originale, sans image externe.
   - `emblems.tsx` : environ 65 emblèmes vectoriels dessinés pour le jeu, dans une boîte de 100 × 100, colorés par `--e1/--e2/--e3`.
-  - `cardArt.ts` : l'emblème principal et l'emblème secondaire **de chaque carte**.
+  - `artMap.ts` : l'emblème principal et l'emblème secondaire **de chaque carte**.
   - `CardArt.tsx` : compose la scène. Le fond reprend la couleur de l'école (doré pour les reliques, spectral pour
     les rancunes). Le motif (rayons, cercles, étincelles, ondes, runes) et l'inclinaison sont tirés d'une graine
     propre à la carte. Le cadre dépend de l'emplacement : cercle pour l'Amorce, losange pour la Torsion, étoile
     pour la Frappe, hexagone pour une relique, stèle pour une rancune.
-- **Ajouter une carte** : ajoutez aussi son entrée dans `cardArt.ts`. Le test `packages/client/test/art.test.ts`
+- **Ajouter une carte** : ajoutez aussi son entrée dans `artMap.ts`. Le test `packages/client/test/art.test.ts`
   échoue si une carte n'a pas d'illustration, si un emblème n'existe pas ou si deux illustrations sont identiques.
 
 ## 8. Robustesse de l'affichage

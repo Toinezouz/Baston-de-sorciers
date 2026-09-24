@@ -1,7 +1,7 @@
 import { cardDef } from "../game/cards";
 
 import { memo, useId } from "react";
-import { artFor, hashString } from "./cardArt";
+import { artFor, hashString } from "./artMap";
 import { EMBLEMS } from "./emblems";
 
 /** Générateur pseudo-aléatoire local (décor uniquement, sans lien avec le hasard du jeu). */
