@@ -15,7 +15,7 @@ Les sorts sont révélés, puis résolus du plus court au plus long. Le dernier 
 | 1 | Analyse, règles, architecture — [`docs/01-analyse.md`](docs/01-analyse.md) | ✅ |
 | 2 | Moteur de règles pur (`packages/engine`) — [`docs/03-moteur.md`](docs/03-moteur.md) | ✅ |
 | 3 | Suite de tests du moteur : 177 tests, 98,5 % des lignes couvertes, fuzzing | ✅ |
-| 4 | Serveur (lobby, WebSocket, reconnexion) | — |
+| 4 | Serveur : lobby, Socket.IO, validation, reconnexion — [`docs/04-serveur.md`](docs/04-serveur.md) | ✅ |
 | 5–7 | Client React, intégration, finitions | — |
 
 ## Prérequis
@@ -26,10 +26,12 @@ Les sorts sont révélés, puis résolus du plus court au plus long. Le dernier 
 ## Commandes
 
 ```bash
-npm install          # installe les dépendances de développement
+npm install          # installe les dépendances
+npm run dev          # lance le serveur de jeu (http://localhost:3001) en rechargement automatique
+npm start            # lance le serveur (production)
 npm test             # lance tous les tests (Vitest)
 npm run test:coverage # couverture du moteur
-npm run typecheck    # vérification TypeScript stricte
+npm run typecheck    # vérification TypeScript stricte (tous les packages)
 npm run sim -- 200 4 # simule 200 parties à 4 bots et affiche des statistiques de rythme et d'équilibrage
 npm run cards:doc    # régénère docs/02-cartes.md depuis le catalogue
 ```
@@ -38,4 +40,15 @@ npm run cards:doc    # régénère docs/02-cartes.md depuis le catalogue
 
 - [`docs/01-analyse.md`](docs/01-analyse.md) : mécaniques, règles reconstruites, architecture, modèle de données, machine à états, décisions D1–D11
 - [`docs/02-cartes.md`](docs/02-cartes.md) : catalogue complet des cartes (généré)
-- [`docs/03-moteur.md`](docs/03-moteur.md) : API du moteur, résolution, **ajout d'une carte ou d'un effet**, garde-fous, décisions D12–D22
+- [`docs/03-moteur.md`](docs/03-moteur.md) : API du moteur, résolution, **ajout d'une carte ou d'un effet**, garde-fous, décisions D12–D24, tests
+- [`docs/04-serveur.md`](docs/04-serveur.md) : serveur temps réel, **protocole**, reconnexion, sécurité, **variables d'environnement**
+
+## Structure
+
+```
+packages/
+├── engine/   moteur de règles pur (TypeScript, sans I/O), cartes, tests
+├── shared/   protocole client/serveur et schémas Zod
+└── server/   serveur Node.js + Socket.IO (salons, sessions, minuteurs)
+docs/         analyse, catalogue des cartes, guides moteur et serveur
+```

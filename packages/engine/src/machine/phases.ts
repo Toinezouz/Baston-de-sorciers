@@ -385,6 +385,16 @@ const onRun: Record<Phase, (s: GameState) => RunResult> = {
     return alivePlayerCount(s) <= 1 ? "ROUND_CHECK" : "PLANNING";
   },
   PLANNING: (s) => {
+    if (alivePlayerCount(s) <= 1) {
+      // Abandon pendant la planification : plus d'adversaire, la manche s'arrête tout de suite.
+      // Les runes déjà posées retournent en main. [RULE D24]
+      for (const p of Object.values(s.players)) {
+        if (p.spell) for (const id of Object.values(p.spell.runes)) if (id) p.hand.push(id);
+        p.spell = null;
+      }
+      for (const t of Object.values(s.timers)) if (t.kind === "PLANNING") delete s.timers[t.id];
+      return "ROUND_CHECK";
+    }
     if (!allSpellsLocked(s)) return "WAIT";
     for (const t of Object.values(s.timers)) if (t.kind === "PLANNING") delete s.timers[t.id];
     return "REVEAL";

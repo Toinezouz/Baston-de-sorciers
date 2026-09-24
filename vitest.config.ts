@@ -6,8 +6,8 @@ export default defineConfig({
     environment: "node",
     coverage: {
       provider: "v8",
-      include: ["packages/engine/src/**/*.ts"],
-      exclude: ["packages/engine/src/index.ts", "packages/engine/src/types.ts"],
+      include: ["packages/engine/src/**/*.ts", "packages/server/src/**/*.ts", "packages/shared/src/**/*.ts"],
+      exclude: ["packages/*/src/index.ts", "packages/engine/src/types.ts"],
       reporter: ["text-summary", "text"],
     },
   },

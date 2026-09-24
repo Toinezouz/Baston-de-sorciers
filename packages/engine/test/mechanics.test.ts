@@ -341,6 +341,16 @@ describe("connexion", () => {
     expect(s.endReason).toBe("FORFEIT");
   });
 
+  it("un abandon pendant la planification qui laisse un seul sorcier termine la manche aussitôt", () => {
+    let s = createTestGame(2);
+    const [id] = setHand(s, "p1", ["rune.seve.pousse-vivace", "rune.seve.ecorce"]);
+    s = act(s, "p1", { type: "PLACE_RUNE", cardId: id!, slot: "AMORCE" }); // p1 n'a pas verrouillé
+    s = must(s, { system: { type: "ABANDON", playerId: "p2" } });
+    expect(s).toMatchObject({ phase: "GAME_OVER", winnerId: "p1", endReason: "FORFEIT" });
+    expect(s.players.p1!.hand).toContain(id);
+    assertCardConservation(s);
+  });
+
   it("un abandon à trois joueurs laisse la partie continuer", () => {
     let s = createTestGame(3);
     s = castSpell(s, "p1", { AMORCE: "rune.ether.prisme" });

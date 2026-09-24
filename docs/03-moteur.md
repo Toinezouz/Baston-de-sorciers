@@ -136,6 +136,7 @@ Elles s'ajoutent à D1–D11 de `01-analyse.md`. Chaque décision est repérée 
 | D20 | Un abandon n'est pas une mort au combat : aucun déclencheur, aucune rancune. Un choix en attente de l'abandonneur est résolu automatiquement. |
 | D21 | Un modificateur « consommable » (Surcharge) s'applique à **tout** l'effet (toutes les cibles d'un effet de zone) et n'est consommé qu'une fois. |
 | D22 | À l'expiration du temps de planification, une rune instable tirée au sort est placée dans un emplacement aléatoire. |
+| D24 | Si un abandon pendant la planification ne laisse qu'un seul sorcier, la manche se termine aussitôt et les runes posées reviennent en main. Ce cas a été découvert par les tests d'intégration. |
 | D23 | Si les PV max baissent (relique volée ou perdue, statut expiré), les PV actuels sont ramenés au nouveau maximum. Ce cas a été découvert par le fuzzing. |
 
 ## 8. Tests
